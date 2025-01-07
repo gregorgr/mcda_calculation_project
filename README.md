@@ -120,13 +120,13 @@ python app/db/database.py
 
 Open your browser and navigate to:
 
-[link](http://127.0.0.1:5000)
+[http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 3. **Simple scrape fortune 500 API**
 
 Scrape API (JSON):
 
-[link](http://127.0.0.1:5000/api/scrape-fortune-500)
+[http://127.0.0.1:5000/api/scrape-fortune-500](http://127.0.0.1:5000/api/scrape-fortune-500)
 
 
 
