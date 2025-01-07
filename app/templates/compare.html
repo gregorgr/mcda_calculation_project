@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Comparison of Methods</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Company Name</th>
+            <th>AHP Score</th>
+            <th>PROMETHEE Score</th>
+            <th>WSM Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in range(ahp|length) %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ ahp[i]['company_name'] }}</td>
+            <td>{{ "{:.2f}".format(ahp[i]['score']) }}</td>
+            <td>{{ "{:.2f}".format(promethee[i]['score']) }}</td>
+            <td>{{ "{:.2f}".format(wsm[i]['score']) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

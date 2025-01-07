@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Select Companies for Analysis</h2>
+<form method="POST">
+    <div class="form-group mb-3">
+        <label for="group">Select Group:</label>
+        <form method="POST">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupA" value="A" 
+                {% if group|lower == 'a' or (group|lower != 'b' and group|lower != 'c') %}checked{% endif %}>
+                <label class="form-check-label" for="groupA">Group A (Rank 1–20)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupB" value="B" 
+                       {% if group == 'B' %}checked{% endif %}>
+                <label class="form-check-label" for="groupB">Group B (Rank 21–40)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupC" value="C" 
+                       {% if group == 'C' %}checked{% endif %}>
+                <label class="form-check-label" for="groupC">Group C (Rank 41–60)</label>
+            </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Select</button>
+</form>
+<br /><br />
+{% if companies %}
+<h3>Selected Companies (Group {{ group }})</h3>
+<div class="table-container table-selection">
+    <!-- Header -->
+    <div class="table-header ">
+        <div class="col-rank">Rank</div>
+        <div class="col-name"><span>Name</span></div>
+        <div class="col-currency">Revenue<br />[$]</div>
+        <div>Revenue<br />Change<br />[%]</div>
+        <div class="col-currency">Profit<br />[$]</div>
+        <div>Profit<br />Change<br />[%] </div>
+        <div>Employees</div>
+        <div class="col-no">Change in<br />Rank</div>
+        <div class="col-currency">Assets<br />[$]</div>
+    </div>
+    <!-- Content -->
+    <div class="table-body">
+        {% for company in companies %}
+        <div class="table-row">
+            <div class="col-rank">   
+                {{ company.rank }}
+            </div>
+            <div class="col-name"><a href="/companies/{{ company.id }}" alt="Details" target="_blank" class="btn btn-primary btn-sm"><b>{{ company.name }}</b></a></div>
+            <div class="col-currency">${{ "{:,.2f}".format(company.revenue) }}</div>
+            <div>{{ company.revenue_percent_change }}%</div>
+            <div class="col-currency">${{ "{:,.2f}".format(company.profit) }}</div>
+            <div>{{ company.profits_percent_change }}%</div>
+            <div>{{ "{:,.0f}".format(company.employees) }}</div>     
+            <div class="col-no">{{ company.change_in_rank }}</div>
+            <div class="col-currency">${{ "{:,.2f}".format(company.assets) }}</div>
+         
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Define Criteria for AHP for group {{group}}</h2>
+<form method="POST">
+    <!-- Skriti input za izbrano skupino -->
+    <input type="hidden" name="group" value="{{ group }}">
+
+    <!-- Polja za kriterije -->
+    <div class="mb-3">
+        <label for="revenue" class="form-label">Revenue</label>
+        <input type="number" step="0.01" name="revenue" id="revenue" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="profit" class="form-label">Profit</label>
+        <input type="number" step="0.01" name="profit" id="profit" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="employees" class="form-label">Employees</label>
+        <input type="number" step="0.01" name="employees" id="employees" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="assets" class="form-label">Assets</label>
+        <input type="number" step="0.01" name="assets" id="assets" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Calculate</button>
+</form>
+{% endblock %}
+
+<script>
+    document.querySelector("form").addEventListener("submit", function(event) {
+        let totalWeight = 0;
+        let inputs = document.querySelectorAll("input[type='number']");
+        inputs.forEach(input => {
+            let value = parseFloat(input.value);
+            if (isNaN(value) || value < 0) {
+                alert("Please enter valid positive numbers for all criteria.");
+                event.preventDefault();
+            } else {
+                totalWeight += value;
+            }
+        });
+        if (totalWeight <= 0) {
+            alert("Total weight must be greater than 0.");
+            event.preventDefault();
+        }
+    });
+</script>
