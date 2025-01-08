@@ -26,15 +26,38 @@ def init_db():
         )
     ''')
 
+#    cursor.execute('''   
+#        ALTER TABLE results RENAME TO results_backup;
+#    ''')
+
     cursor.execute('''   
         CREATE TABLE IF NOT EXISTS results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            method_id INTEGER,       -- Identifikator metode (1 = AHP, 2 = PROMETHEE, 3 = WSM)
-            company_id INTEGER,      -- ID podjetja iz fortune500
-            company_name TEXT,       -- Ime podjetja
-        score REAL               -- Ocena podjetja
-        )         
+            method_id INTEGER,
+            company_id INTEGER,
+            company_name TEXT,
+            score REAL
+        )     
     ''')
+#    cursor.execute('''   
+#        INSERT INTO results (id, method_id, company_id, company_name, score)
+#        SELECT id, method_id, company_id, company_name, score FROM results_backup;       
+#    ''')
+
+   # cursor.execute('''   
+   #     DROP TABLE results_backup;        
+   # ''')
+
+
+ #   cursor.execute('''   
+ #       CREATE TABLE IF NOT EXISTS results (
+ #           id INTEGER PRIMARY KEY AUTOINCREMENT,
+ #           method_id INTEGER,       -- Identifikator metode (1 = AHP, 2 = PROMETHEE, 3 = WSM)
+ #           company_id INTEGER,      -- ID podjetja iz fortune500
+ #           company_name TEXT,       -- Ime podjetja
+ #       score REAL               -- Ocena podjetja
+ #       )         
+#    ''')
     conn.commit()
     conn.close()
 #CREATE TABLE IF NOT EXISTS ahp_results (

@@ -2,7 +2,7 @@
 from flask import Flask, g, jsonify, request, redirect, url_for, render_template
 from scrape500.scrape500 import scrape_fortune500
 from db.database import init_db, get_all_companies, save_companies_to_db, get_results, get_all_companies_for_group
-from methods.ahp.ahp import calculate_ahp_with_method_id, calculate_ahp_advance_with_method_id
+from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
 from constants import METHODS, FORTUNE_URL 
 
 

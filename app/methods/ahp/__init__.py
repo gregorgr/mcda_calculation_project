@@ -1,1 +1,1 @@
-from .ahp import calculate_ahp
+from .ahp import calculate_ahp, calculate_ahp_advance_with_method_id

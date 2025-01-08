@@ -1,6 +1,8 @@
+# methods/ahp/ahp.py
 from numpy import array, sum, amax, linalg, transpose
 import numpy as np
-from methods.ahp.utils import normalize_matrix
+from methods.utils import normalize_matrix, round_scores
+
 from db.database import save_results
 
 
@@ -62,12 +64,37 @@ def calculate_ahp_advance_with_method_id(alternatives, weights):
     w = GMcriteria / sum(GMcriteria)
     global_priorities = S.dot(w.T)
 
+     # Zaokroževanje na 3 decimalna mesta
+    global_priorities = [round(priority, 3) for priority in global_priorities]
+
     # Shranjevanje rezultatov v bazo
     results = [{'company_id': alt['id'], 'name': alt['name'], 'score': global_priorities[i]} for i, alt in enumerate(alternatives)]
     print("Calculated advanced AHP results:", results)  # Debug
     save_results(1, results) # 2 = method_id for advanced AHP
 
     return results
+
+
+
+
+def calculate_ahp_with_method_id(alternatives, weights):
+    # Izračunaj AHP
+    criteria = list(weights.keys())
+    matrix = np.array([[alt[crit] for crit in criteria] for alt in alternatives])
+    normalized_matrix = matrix / matrix.sum(axis=0)
+    scores = normalized_matrix.dot(np.array(list(weights.values())))
+
+    # Zaokroževanje na 3 decimalna mesta
+    scores = [round(score, 3) for score in scores]
+
+    # Pripravi rezultate
+    results = [{'company_id': alt['id'], 'name': alt['name'], 'score': scores[i]} for i, alt in enumerate(alternatives)]
+    print("Calculated AHP results:", results)  # Debug output
+
+    save_results(1, results)  # 1 = method_id for AHP
+
+    return results
+
 
 
 
@@ -88,25 +115,6 @@ def calculate_ahp(alternatives, weights):
         alt['score'] = scores[i]
     
     return sorted(alternatives, key=lambda x: x['score'], reverse=True)
-
-
-
-def calculate_ahp_with_method_id(alternatives, weights):
-    # Izračunaj AHP
-    criteria = list(weights.keys())
-    matrix = np.array([[alt[crit] for crit in criteria] for alt in alternatives])
-    normalized_matrix = matrix / matrix.sum(axis=0)
-    scores = normalized_matrix.dot(np.array(list(weights.values())))
-    
-    # Pripravi rezultate
-    results = [{'name': alt['name'], 'score': scores[i]} for i, alt in enumerate(alternatives)]
-    print("Results from AHP calculation:", results) 
-    # Shrani rezultate z metodo "AHP"
-    save_results(1, results)
-    
-    return results
-
-
 
 
 
