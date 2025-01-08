@@ -72,6 +72,14 @@ nav h3{
 .distinct-label .form-label{
     font-size: 1.1rem;
 }
+.total-weight{
+    font-size: 1.3em;
+    padding: 10px 0;
+}
+.total-weight span{
+    padding-left: 3em;
+    font-weight: bold;
+}
 
    @keyframes logo-spin {
      from {

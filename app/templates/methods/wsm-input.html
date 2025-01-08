@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Weighted Sum Model (WSM) - Group {{ group }}</h1>
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+
+    <form method="post">
+        <label for="num_criteria">Number of Criteria:</label>
+        <input type="number" id="num_criteria" name="num_criteria" value="7" readonly><br><br>
+
+    
+        <h3>Criteria Weights</h3>
+        <p>Enter weights for each criterion (total must equal 1):</p>
+        {% for key, display_name in criteria_display.items() %}
+        <div class="row align-items-center mb-3">
+            <div class="col-md-5 distinct-label">
+                <label for="{{ key }}" class="form-label">{{ display_name }}</label>
+            </div>
+            <div class="col-md-5">
+                <input 
+                    type="number" 
+                    step="0.01" 
+                    class="form-control weight-input" 
+                    name="weights" 
+                    id="{{ key }}" 
+                    required 
+                    onchange="validateWeights()">
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="row align-items-center mb-3">
+            <div class="col-md-5 distinct-label">
+                
+            </div>
+            <div class="col-md-5">
+                <p class="total-weight">Total Weight:<span id="total-weight">0.00</span></p>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3">
+            <div class="col-md-5"><button type="submit" id="submit-button" class="btn btn-primary" disabled>Submit</button></div>
+            <div class="col-md-5">
+                
+            </div>
+        </div>
+        </form>
+    </div>
+    <script>
+        // Function to validate weights and enable/disable the submit button
+        function validateWeights() {
+            let weightInputs = document.querySelectorAll('.weight-input');
+            let totalWeight = 0;
+
+            weightInputs.forEach(input => {
+                totalWeight += parseFloat(input.value) || 0;
+            });
+
+            document.getElementById('total-weight').textContent = totalWeight.toFixed(2);
+            document.getElementById('submit-button').disabled = (totalWeight.toFixed(2) != 1);
+        }
+    </script>
+{% endblock %}

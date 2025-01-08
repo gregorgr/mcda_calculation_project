@@ -39,6 +39,15 @@ def init_db():
             score REAL
         )     
     ''')
+    #cursor.execute('''   
+    #    CREATE TABLE IF NOT EXISTS results (
+    #        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #        method_id INTEGER,
+    #        company_id INTEGER,
+    #        company_name TEXT,
+    #        score REAL
+    #    )     
+    ''')
     #    cursor.execute('''   
     #        INSERT INTO results (id, method_id, company_id, company_name, score)
     #        SELECT id, method_id, company_id, company_name, score FROM results_backup;       
@@ -83,11 +92,11 @@ def get_all_companies_for_group(group):
     cursor = conn.cursor()
     
     if group == 'A':
-        query = 'SELECT * FROM fortune500 WHERE rank BETWEEN 1 AND 20 ORDER BY rank ASC'
+        query = 'SELECT id AS company_id, * FROM fortune500 WHERE rank BETWEEN 1 AND 20 ORDER BY rank ASC'
     elif group == 'B':
-        query = 'SELECT * FROM fortune500 WHERE rank BETWEEN 21 AND 40 ORDER BY rank ASC'
+        query = 'SELECT id AS company_id, *  FROM fortune500 WHERE rank BETWEEN 21 AND 40 ORDER BY rank ASC'
     elif group == 'C':
-        query = 'SELECT * FROM fortune500 WHERE rank BETWEEN 41 AND 60 ORDER BY rank ASC'
+        query = 'SELECT id AS company_id, *  FROM fortune500 WHERE rank BETWEEN 41 AND 60 ORDER BY rank ASC'
     else:
         return []  # Neveljavna skupina
     
@@ -189,9 +198,15 @@ def save_results(method_id, results):
     
     # Vstavi nove rezultate
     for result in results:
+
+        #cursor.execute(
+        #    'INSERT INTO results (method_id, company_name, score) VALUES (?, ?, ?)',
+        #    (method_id, result['name'], result['score'])
+        #)
         cursor.execute(
-            'INSERT INTO results (method_id, company_name, score) VALUES (?, ?, ?)',
-            (method_id, result['name'], result['score'])
+            'INSERT INTO results (method_id, company_id, company_name, score) VALUES (?, ?, ?, ?)',
+            (method_id, result['company_id'], result['name'], result['score'])
         )
+                
     conn.commit()
     conn.close()
