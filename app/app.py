@@ -34,6 +34,17 @@ def home():
 #    return jsonify({'message': 'Database initialized!'})
 
 
+# Route for PROMETHEE method
+@app.route('/promethee')
+def promethee():
+
+    group = request.args.get('group', 'A')  # Default group "A" if not provided
+    #Render the main page for the PROMETHEE method.
+
+    # Render the template specific for PROMETHEE
+    return render_template('methods/promethee-main.html')
+
+
 @app.route('/companies')
 def companies_table():
     # companies = scrape_fortune500(FORTUNE_URL)  # Pridobi podatke
@@ -93,14 +104,18 @@ def ahp():
         group = request.args.get('group', 'A')  # Privzeto "A", če ni definirano
         # Preberi skupino iz obrazca
         # group = request.form.get('group', 'A')  # Privzeto skupina A, če ni definirana
-        
+        print("Selected group:", group)  # Izpis podjetij
         # Preberi uteži in alternative
         weights = {
             'revenue': float(request.form['revenue']),
+            'revenue_percent_change': float(request.form.get('revenue_percent_change', 0.0)),
             'profit': float(request.form['profit']),
+            'profits_percent_change': float(request.form.get('profits_percent_change', 0.0)),
             'employees': float(request.form['employees']),
             'assets': float(request.form['assets']),
+            'change_in_rank': float(request.form.get('change_in_rank', 0.0)),
         }
+
 
         # Preveri, ali so vse uteži pozitivne
         if any(w <= 0 for w in weights.values()):
@@ -116,7 +131,13 @@ def ahp():
         print("Normalized weights:", weights)
         # Pridobi podjetja za izbrano skupino
         companies = get_all_companies_for_group(group)
-        print("Selected companies:", companies)  # Izpis podjetij
+              
+        # Če ni podjetij, vrni sporočilo
+        if not companies:
+            error_text  = "No companies found for the selected group."
+            return render_template('error.html', error_text=error_text)
+        
+        # print("Selected companies:", companies)  # Izpis podjetij
         alternatives = [
             {
                 'id': c['id'],
@@ -124,14 +145,21 @@ def ahp():
                 'revenue': c['revenue'],
                 'profit': c['profit'],
                 'employees': c['employees'],
-                'assets': c['assets']
+                'assets': c['assets'],
+                'revenue_percent_change': c['revenue_percent_change'],
+                'profits_percent_change': c['profits_percent_change'],
+                'change_in_rank': c['change_in_rank'],
             }
             for c in companies
         ]
 
+        
         # Če ni podjetij, vrni sporočilo
         if not alternatives:
-            return "No companies found for the selected group.", 400
+            error_text  = "No companies found for the selected group."
+            return render_template('error.html', error_text=error_text)
+            # return "No companies found for the selected group.", 400
+            
 
 
         # Izračunaj AHP in shrani rezultate

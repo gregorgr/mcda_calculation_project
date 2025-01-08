@@ -6,14 +6,22 @@
     <!-- Skriti input za izbrano skupino -->
     <input type="hidden" name="group" value="{{ group }}">
 
-    <!-- Polja za kriterije -->
+    <!-- Fields for criteria -->
     <div class="mb-3">
         <label for="revenue" class="form-label">Revenue</label>
         <input type="number" step="0.01" name="revenue" id="revenue" class="form-control" required>
     </div>
     <div class="mb-3">
+        <label for="revenue_percent_change" class="form-label">Revenue Percent Change</label>
+        <input type="number" step="0.01" name="revenue_percent_change" id="revenue_percent_change" class="form-control">
+    </div>
+    <div class="mb-3">
         <label for="profit" class="form-label">Profit</label>
         <input type="number" step="0.01" name="profit" id="profit" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="profits_percent_change" class="form-label">Profits Percent Change</label>
+        <input type="number" step="0.01" name="profits_percent_change" id="profits_percent_change" class="form-control">
     </div>
     <div class="mb-3">
         <label for="employees" class="form-label">Employees</label>
@@ -22,6 +30,12 @@
     <div class="mb-3">
         <label for="assets" class="form-label">Assets</label>
         <input type="number" step="0.01" name="assets" id="assets" class="form-control" required>
+    </div>
+
+
+    <div class="mb-3">
+        <label for="change_in_rank" class="form-label">Change in Rank</label>
+        <input type="number" step="1" name="change_in_rank" id="change_in_rank" class="form-control">
     </div>
     <button type="submit" class="btn btn-primary">Calculate</button>
 </form>
