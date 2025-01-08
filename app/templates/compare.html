@@ -1,27 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Comparison of Methods</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Rank</th>
-            <th>Company Name</th>
-            <th>AHP Score</th>
-            <th>PROMETHEE Score</th>
-            <th>WSM Score</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for i in range(ahp|length) %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ ahp[i]['company_name'] }}</td>
-            <td>{{ "{:.2f}".format(ahp[i]['score']) }}</td>
-            <td>{{ "{:.2f}".format(promethee[i]['score']) }}</td>
-            <td>{{ "{:.2f}".format(wsm[i]['score']) }}</td>
-        </tr>
+<script>
+    let sortOrder = {};  // Store sort order for each column (ascending or descending)
+
+// Function to sort companies by the selected method
+function sortTable(methodIndex) {
+    const companies = Array.from(document.querySelectorAll('.company-row'));
+    const container = document.getElementById('companies-container');
+
+    // Toggle sort order for the selected method
+    sortOrder[methodIndex] = !sortOrder[methodIndex];
+
+    companies.sort((a, b) => {
+        const valueA = parseFloat(a.dataset[methodIndex]) || 0;
+        const valueB = parseFloat(b.dataset[methodIndex]) || 0;
+
+        return sortOrder[methodIndex] ? valueA - valueB : valueB - valueA;
+    });
+
+    // Clear and re-append sorted rows
+    container.innerHTML = '';
+    companies.forEach(row => container.appendChild(row));
+}
+</script>
+<div class="container">
+    <h1 class="mt-4">Comparison of Results (Group {{ group }})</h1>
+    <p>This table compares the scores of companies across all methods.</p>
+
+
+    <div class="table-header d-flex border">
+        <div class="col-md-4 p-2">Company</div>
+        {% for method in methods %}
+            <div class="col-md-2 p-2 text-center sortable method-name" onclick="sortTable('{{ loop.index0 }}')">
+                {{ method }}
+            </div>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+
+    <div id="companies-container" class="border">
+        {% for company in companies %}
+        <div class="d-flex company-row align-items-center border-bottom"
+             {% for method in methods %}
+                 data-{{ loop.index0 }}="{{ company.scores.get(method, '') }}"
+             {% endfor %}>
+            <div class="col-md-4 p-2">{{ company.name }}</div>
+            {% for method in methods %}
+                <div class="col-md-2 p-2 text-center">
+                    {{ company.scores.get(method, '') }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

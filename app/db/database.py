@@ -39,6 +39,14 @@ def init_db():
             score REAL
         )     
     ''')
+    cursor.execute('''   
+        CREATE TABLE IF NOT EXISTS methods (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            method_name TEXT NOT NULL
+            )     
+    ''')
+
+
     #cursor.execute('''   
     #    CREATE TABLE IF NOT EXISTS results (
     #        id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +92,43 @@ def get_results(method_id):
     print("Results from DB:", results) 
     conn.close()
     return results
+
+
+def get_all_results_with_methods(group):
+    """
+    Retrieve results for all methods from the database.
+    Joins 'results' and 'methods' tables to include method names.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Determine the rank range based on the group
+    if group == 'A':
+        rank_condition = "r.company_id BETWEEN 1 AND 20"
+    elif group == 'B':
+        rank_condition = "r.company_id BETWEEN 21 AND 40"
+    elif group == 'C':
+        rank_condition = "r.company_id BETWEEN 41 AND 60"
+    else:
+        raise ValueError("Invalid group")
+    # table methods not implemented
+    #query = '''
+    #    SELECT r.method_id, r.company_id, r.company_name, r.score, m.method_name
+    #    FROM results r
+    #    JOIN methods m ON r.method_id = m.id
+    #    ORDER BY r.company_id, r.method_id
+    #'''
+    query = f'''
+        SELECT r.method_id, r.company_id, r.company_name, r.score
+        FROM results r
+        WHERE {rank_condition}
+        ORDER BY r.company_id, r.method_id
+    '''
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
 
 
 def get_all_companies_for_group(group):

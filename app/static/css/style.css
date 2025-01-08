@@ -81,6 +81,21 @@ nav h3{
     font-weight: bold;
 }
 
+.table-header {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+.company-row:hover {
+    background-color: #f1f1f1;
+}
+.sortable:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.method-name {
+    white-space: nowrap;
+}
+
    @keyframes logo-spin {
      from {
        transform: rotate(0deg);

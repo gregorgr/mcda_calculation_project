@@ -1,7 +1,7 @@
 # from flask import Flask, jsonify, render_template
 from flask import Flask, g, jsonify, request, redirect, url_for, render_template, session
 from scrape500.scrape500 import scrape_fortune500
-from db.database import init_db, save_results, get_all_companies, save_companies_to_db, get_results, get_all_companies_for_group
+from db.database import init_db, save_results, get_all_companies, get_all_results_with_methods, save_companies_to_db, get_results, get_all_companies_for_group
 import numpy as np
 from constants import METHODS, FORTUNE_URL, SECRET_KEY
 from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
@@ -686,11 +686,34 @@ def results(method_id):
 
 @app.route('/compare')
 def compare():
-    ahp_results = get_results(1)
-    topsis_results= get_results(2)
-    promethee_results = get_results(3)
-    wsm_results = get_results(4)
-    return render_template('compare.html', ahp=ahp_results, promethee=promethee_results, wsm=wsm_results)
+    """
+    Compare results from all methods (AHP, WSM, etc.)
+    """
+  
+    group = request.args.get('group', 'A') 
+
+    # Retrieve results using the helper function
+    rows = get_all_results_with_methods(group)
+
+    print("debug COMPARE(): rows")
+    print(rows)
+    for row in rows:
+        print(row)  # Pretvori SQLite Row v navaden slovar
+
+    # Organize results by company
+    comparison_data = {}
+    for row in rows:
+        method_id, company_id, company_name, score = row
+        if company_id not in comparison_data:
+            comparison_data[company_id] = {'name': company_name, 'scores': {}}
+        comparison_data[company_id]['scores'][METHODS[method_id]] = score
+
+    # Prepare companies for rendering
+    companies = list(comparison_data.values())
+
+    return render_template('compare.html', methods=METHODS.values(), companies=companies, group=group)
+
+    # return render_template('compare.html', group=group, ahp=ahp_results, promethee=promethee_results, wsm=wsm_results)
 
 
 
