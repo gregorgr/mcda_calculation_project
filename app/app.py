@@ -1,13 +1,17 @@
 # from flask import Flask, jsonify, render_template
-from flask import Flask, g, jsonify, request, redirect, url_for, render_template
+from flask import Flask, g, jsonify, request, redirect, url_for, render_template, session
 from scrape500.scrape500 import scrape_fortune500
 from db.database import init_db, get_all_companies, save_companies_to_db, get_results, get_all_companies_for_group
+import numpy as np
+from constants import METHODS, FORTUNE_URL, SECRET_KEY
 from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
-from constants import METHODS, FORTUNE_URL 
+from methods.promethee.promethee import classify_and_normalize, calculate_difference_matrix
+
 
 
 
 app = Flask(__name__)
+app.secret_key = 'SECRET_KEY'
 
 # Inicializacija baze
 @app.before_request
@@ -35,12 +39,13 @@ def home():
 
 
 # Route for PROMETHEE method
-@app.route('/promethee')
+# step 1
+@app.route('/promethee', methods=['GET', 'POST'])
 def promethee():
 
     group = request.args.get('group', 'A')  # Default group "A" if not provided
     #Render the main page for the PROMETHEE method.
-    attributes = {
+    classification_attributes = {
         'revenue': 'beneficial',
         'revenue_percent_change': 'beneficial',
         'profit': 'beneficial',
@@ -50,21 +55,166 @@ def promethee():
         'change_in_rank': 'non-beneficial'
     }
 
-    # Normalize decision matrix
-    #normalized_matrix = classify_and_normalize(decision_matrix, attributes)
-    #print("Normalized Matrix:\n", normalized_matrix)
-    # Calculate difference matrix
-    #difference_matrix = calculate_difference_matrix(normalized_matrix)
+    classification_attributes = session.get('classification_attributes', classification_attributes)
     #print("Difference Matrix:\n", difference_matrix)
+    if request.method == 'POST':
+        # Save classification to database or memory
+        for attribute in classification_attributes.keys():
+            classification_attributes[attribute] = request.form.get(attribute, classification_attributes[attribute])
 
-    # Render the template specific for PROMETHEE
-    return render_template('methods/promethee-classify.html', attributes=attributes, group=group)
+        # Store attributes in session
+        session['classification_attributes'] = classification_attributes
+
+        # Redirect to parameter settings
+        return redirect('/promethee/parameters?group=' + group)
+
+    return render_template('methods/promethee-classify.html', attributes=classification_attributes, group=group)
 
 
+
+# Route for PROMETHEE method
+# step 2
+@app.route('/promethee/parameters', methods=['GET', 'POST'])
+def promethee_parameters():
+    group = request.args.get('group', 'A')  # Default group "A"
+
+    # Default parameter settings
+    parameter_attributes = {
+        'revenue': {'weight': 0.2, 'preference': 'linear'},
+        'revenue_percent_change': {'weight': 0.2, 'preference': 'linear'},
+        'profit': {'weight': 0.2, 'preference': 'linear'},
+        'profits_percent_change': {'weight': 0.1, 'preference': 'linear'},
+        'employees': {'weight': 0.1, 'preference': 'linear'},
+        'assets': {'weight': 0.1, 'preference': 'linear'},
+        'change_in_rank': {'weight': 0.1, 'preference': 'threshold'}
+    }
+
+    parameter_attributes = session.get('parameter_attributes', parameter_attributes)
+
+    if request.method == 'POST':
+        # Update parameter settings based on user input
+        for attr in parameter_attributes.keys():
+            parameter_attributes[attr]['weight'] = float(request.form.get(f'{attr}_weight', parameter_attributes[attr]['weight']))
+            parameter_attributes[attr]['preference'] = request.form.get(f'{attr}_preference', parameter_attributes[attr]['preference'])
+        
+        session['parameter_attributes'] = parameter_attributes
+        # Save parameter settings to database or memory
+        print("Updated parameters:", parameter_attributes)
+
+        # Redirect to processing step (e.g., normalization)
+        return redirect('/promethee/normalize?group=' + group)
+
+    return render_template('methods/promethee-parameters.html', attributes=parameter_attributes, group=group)
+
+
+@app.route('/promethee/decision-matrix', methods=['GET', 'POST'])
+def promethee_decision_matrix():
+    if request.method == 'POST':
+        # Retrieve decision matrix from user input
+        num_alternatives = int(request.form.get('num_alternatives', 3))
+        attributes = ['revenue', 'profit', 'employees', 'assets']  # Example attributes
+        decision_matrix = []
+
+        for i in range(1, num_alternatives + 1):
+            row = []
+            for attribute in attributes:
+                value = float(request.form.get(f'alt_{i}_{attribute}', 0))
+                row.append(value)
+            decision_matrix.append(row)
+
+        # Save decision matrix in session or database
+        session['decision_matrix'] = decision_matrix
+        return redirect('/promethee/normalize')
+
+    # Render form to input decision matrix
+    return render_template('methods/promethee-decision-matrix.html', num_alternatives=3, attributes=['revenue', 'profit', 'employees', 'assets'])
+
+
+@app.route('/promethee/normalize', methods=['GET'])
+def promethee_normalize():
+    group = request.args.get('group', 'A')
+
+ 
+
+    # Attribute classification (replace with database or user input)
+    #classification_attributes = {
+    #    'revenue': 'beneficial',
+    #    'revenue_percent_change': 'beneficial',
+    #    'profit': 'beneficial',
+    #    'profits_percent_change': 'beneficial',
+    #    'employees': 'beneficial',
+    #    'assets': 'beneficial',
+    #    'change_in_rank':
+    #    'non-beneficial'
+    #}
+    
+    # Retrieve classification attributes from session
+    classification_attributes = session.get('classification_attributes', {})
+    if not classification_attributes:
+        error_text  = "Classification attributes not found. Please complete the previous step."
+        return render_template('error.html', error_text=error_text)
+    
+    # Example decision matrix
+    decision_matrix = np.array([
+        [500, 5, 50, 3, 1000, 2000, -2],
+        [700, 6, 80, 4.5, 1500, 3000, 1],
+        [600, 4, 60, 2, 1200, 2500, 0]
+    ])
+
+      
+
+    # print("promethee_normalize:decision Matrix:", decision_matrix)
+    # Normalize decision matrix
+    normalized_matrix = classify_and_normalize(decision_matrix, classification_attributes)
+        # Store in session
+    session['classification_attributes'] = classification_attributes
+    session['normalized_matrix'] = normalized_matrix.tolist()
+    
+    print("promethee_normalize: Normalized Matrix:", normalized_matrix)
+
+    # Save normalized matrix (e.g., in memory or database)
+    return redirect('/promethee/differences?group=' + group)
+
+
+@app.route('/promethee/differences', methods=['GET'])
+def promethee_differences():
+    group = request.args.get('group', 'A')
+
+    # Example normalized matrix (replace with saved data)
+    normalized_matrix = np.array([
+        [0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 1.0],
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0],
+        [0.5, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5]
+    ])
+
+        # Retrieve from session
+    normalized_matrix = np.array(session.get('normalized_matrix', []))
+    attributes = session.get('attributes', {})
+    if normalized_matrix.size == 0:
+        return "Normalized matrix not found. Please complete the previous step."
+
+    # Calculate difference matrix
+    difference_matrix = calculate_difference_matrix(normalized_matrix)
+    print("Difference Matrix:", difference_matrix)
+
+    # Save difference matrix (e.g., in memory or database)
+    return "Difference matrix calculated. Proceed to preference functions."
+
+
+# Route for PROMETHEE method
+# step 3
 @app.route('/promethee/classify', methods=['POST'])
 def classify_attributes():
 
     group = request.form.get('group')  # Retrieve the group
+
+    # Example decision matrix
+    decision_matrix = np.array([
+        [500, 5, 50, 3, 1000, 2000, -2],
+        [700, 6, 80, 4.5, 1500, 3000, 1],
+        [600, 4, 60, 2, 1200, 2500, 0]
+    ])
+
     attributes = {
         'revenue': request.form.get('revenue'),
         'revenue_percent_change': request.form.get('revenue_percent_change'),
@@ -90,36 +240,7 @@ def classify_attributes():
     # return redirect('/promethee/next')
     return redirect('/promethee')  # Replace '/promethee/next' with the next step
 
-@app.route('/promethee/parameters', methods=['GET', 'POST'])
-def promethee_parameters():
-    group = request.args.get('group', 'A')  # Default group "A"
 
-    # Prednastavljene uteži in preferenčne funkcije
-    attributes = {
-        'revenue': {'weight': 0.2, 'preference': 'linear'},
-        'revenue_percent_change': {'weight': 0.2, 'preference': 'linear'},
-        'profit': {'weight': 0.2, 'preference': 'linear'},
-        'profits_percent_change': {'weight': 0.1, 'preference': 'linear'},
-        'employees': {'weight': 0.1, 'preference': 'linear'},
-        'assets': {'weight': 0.1, 'preference': 'linear'},
-        'change_in_rank': {'weight': 0.1, 'preference': 'threshold'}
-    }
-
-    if request.method == 'POST':
-        # Obdelava posodobljenih uteži in preferenc
-        for attr in attributes.keys():
-            attributes[attr]['weight'] = float(request.form.get(f'{attr}_weight', attributes[attr]['weight']))
-            attributes[attr]['preference'] = request.form.get(f'{attr}_preference', attributes[attr]['preference'])
-
-        # Debug: Prikaz posodobljenih parametrov
-        print("Updated attributes:", attributes)
-
-        # Ponovni izračun PROMETHEE (vključite svojo funkcijo za izračun)
-        # results = calculate_promethee(group, attributes)
-
-        return redirect('/promethee/results')  # Replace with the results page
-
-    return render_template('methods/promethee-parameters.html', attributes=attributes, group=group)
 
 @app.route('/companies')
 def companies_table():

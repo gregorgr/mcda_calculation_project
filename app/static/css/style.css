@@ -45,6 +45,29 @@ nav h3{
     text-decoration: none;
 
 }
+.form-step {
+    margin: 0;
+    width: 100%;
+
+    padding: 0;
+    margin-bottom: 20px;
+  }
+.form-step ul{
+    display: inline list-item;
+    font-size: 2em;
+    font-weight: normal;
+    list-style: none;
+    padding-inline-start: 0;
+}
+.form-step ul li{
+    display: inline list-item;
+    list-style: none;
+    padding: 10px 20px;
+    background-color: #f2f2f2;
+}
+.form-step ul li.step-focus{
+    font-weight: bold;
+}
 
 .distinct-label .form-label{
     font-size: 1.1rem;

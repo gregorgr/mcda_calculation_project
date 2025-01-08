@@ -76,6 +76,8 @@ def linguistic_to_numeric(matrix):
     # Apply mapping to the matrix
     return matrix.replace(mapping)
 
+
+
 def validate_matrix(matrix):
     """
     Validate the decision matrix for completeness and consistency.
@@ -85,6 +87,8 @@ def validate_matrix(matrix):
     if not all(matrix.dtypes == 'object'):
         raise ValueError("All values in the matrix should initially be strings.")
     return True
+
+
 
 def process_decision_matrix(matrix):
     """

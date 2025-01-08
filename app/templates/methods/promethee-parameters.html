@@ -3,8 +3,16 @@
 {% block content %}
     <div class="container mt-5">
         <h1 class="mb-4 text-center">PROMETHEE Decision Support Tool</h1>
-        <h3 class="mb-4 text-center">PROMETHEE Parameter Settings</h3>
-        <form method="POST" action="/promethee/parameters">
+        <div class="form-step">
+            <ul>
+                <li>Step 1</li>
+                <li class="step-focus">Step 2</li>
+                <li>Step 3</li>
+            </ul>
+        </div>
+        <h3 class="mb-4 text-left">Step 2. PROMETHEE Parameter Settings</h3>
+
+        <form method="POST" action="/promethee/parameters?group={{ group }}">
             <!-- Hidden input for group -->
             <input type="hidden" name="group" value="{{ group }}">
 
@@ -12,7 +20,7 @@
             {% for attribute, settings in attributes.items() %}
             <div class="row align-items-center mb-3">
                 <!-- Attribute name -->
-                <div class="col-md-4">
+                <div class="col-md-4 distinct-label">
                     <label class="form-label" for="{{ attribute }}">{{ attribute.replace('_', ' ').title() }}</label>
                 </div>
                 <!-- Weight input -->

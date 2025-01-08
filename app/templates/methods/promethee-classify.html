@@ -3,9 +3,16 @@
 {% block content %}
 <div class="container mt-5">
     <h1 class="mb-4 text-center">PROMETHEE Decision Support Tool</h1>
-
+    <div class="form-step">
+        <ul>
+            <li class="step-focus">Step 1</li>
+            <li >Step 2</li>
+            <li>Step 3</li>
+        </ul>
+    </div>
     <h2 class="mb-4 text-left">Step 1. Attribute Classification</h2>
-    <form method="POST" action="/promethee/classify">
+   
+    <form method="POST" action="/promethee?group={{ group }}">
         <!-- Hidden input for group -->
         <input type="hidden" name="group" value="{{ group }}">
         
