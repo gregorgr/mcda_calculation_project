@@ -31,17 +31,22 @@ def classify_and_normalize(matrix, attributes):
     and normalize the evaluation matrix.
 
     Parameters:
-        matrix (numpy.ndarray): Decision matrix (alternatives x attributes).
+        matrix (list of lists or numpy.ndarray): Decision matrix (alternatives x attributes).
         attributes (dict): Dictionary of attribute classifications:
             {'attribute_name': 'beneficial' or 'non-beneficial'}.
 
     Returns:
         numpy.ndarray: Normalized decision matrix.
     """
+    
+    # Ensure matrix is a numpy array
+    matrix = np.array(matrix, dtype=float)
+    
+    # Initialize the normalized matrix
     normalized_matrix = np.zeros_like(matrix, dtype=float)
 
     for j, (attr_name, attr_type) in enumerate(attributes.items()):
-        column = matrix[:, j]
+        column = matrix[:, j]  # Get the column for the attribute
         
         if attr_type == 'beneficial':
             # Normalization for beneficial attributes

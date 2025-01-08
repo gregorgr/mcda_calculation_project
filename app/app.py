@@ -32,6 +32,16 @@ def before_request():
 def home():
     return render_template('home.html')
 
+
+@app.route('/wsm', methods=['GET'])
+def wsm_main():
+    return render_template('methods/wsm.html')
+
+@app.route('/topsis', methods=['GET'])
+def topsis_main():
+    return render_template('methods/topsis.html')
+
+
 #@app.route('/init-db')
 #def init_database():
 #    init_db()
@@ -45,6 +55,15 @@ def promethee():
 
     group = request.args.get('group', 'A')  # Default group "A" if not provided
     #Render the main page for the PROMETHEE method.
+
+    # Retrieve companies for the selected group
+    companies = get_all_companies_for_group(group)
+    print("PROMETHEE Debug: ", companies)
+    
+    company_names = [company['name'] for company in companies]
+    session['company_names'] = company_names  # Store company names in session
+
+
     classification_attributes = {
         'revenue': 'beneficial',
         'revenue_percent_change': 'beneficial',
@@ -63,6 +82,7 @@ def promethee():
             classification_attributes[attribute] = request.form.get(attribute, classification_attributes[attribute])
 
         # Store attributes in session
+        session['group'] = group
         session['classification_attributes'] = classification_attributes
 
         # Redirect to parameter settings
@@ -102,34 +122,64 @@ def promethee_parameters():
         print("Updated parameters:", parameter_attributes)
 
         # Redirect to processing step (e.g., normalization)
-        return redirect('/promethee/normalize?group=' + group)
+        return redirect('/promethee/decision-matrix?group=' + group)
+        # return redirect('/promethee/normalize?group=' + group)
 
     return render_template('methods/promethee-parameters.html', attributes=parameter_attributes, group=group)
 
 
+#step 3 (optional)
 @app.route('/promethee/decision-matrix', methods=['GET', 'POST'])
 def promethee_decision_matrix():
+
+    group = request.args.get('group', 'A')  # Default group "A"
+
+        # Example decision matrix
+    decision_matrix = np.array([
+            [500, 5, 50, 3, 1000, 2000, -2],
+            [700, 6, 80, 4.5, 1500, 3000, 1],
+            [600, 4, 60, 2, 1200, 2500, 0]
+        ])
+    
+    decision_matrix = session.get('decision_matrix', decision_matrix)
+    # parameter_attributes = session.get('parameter_attributes', parameter_attributes)
+    attributes = ['revenue', 
+                'revenue_percent_change', 
+                'profit', 
+                'profits_percent_change', 
+                'employees', 
+                'assets',
+                'change_in_rank']  # Example attributes
+    
+
     if request.method == 'POST':
+
         # Retrieve decision matrix from user input
         num_alternatives = int(request.form.get('num_alternatives', 3))
-        attributes = ['revenue', 'profit', 'employees', 'assets']  # Example attributes
-        decision_matrix = []
 
+        # decision_matrix = []
+
+        decision_matrix = []
         for i in range(1, num_alternatives + 1):
             row = []
             for attribute in attributes:
-                value = float(request.form.get(f'alt_{i}_{attribute}', 0))
+                value = request.form.get(f'alt_{i}_{attribute}', '')
+                try:
+                    value = float(value) if value else 0.0
+                except ValueError:
+                    value = 0.0  # Default to 0 if conversion fails
                 row.append(value)
             decision_matrix.append(row)
 
         # Save decision matrix in session or database
         session['decision_matrix'] = decision_matrix
-        return redirect('/promethee/normalize')
+        # Redirect to processing step (e.g., normalization)
+        return redirect('/promethee/normalize?group=' + group)
 
     # Render form to input decision matrix
-    return render_template('methods/promethee-decision-matrix.html', num_alternatives=3, attributes=['revenue', 'profit', 'employees', 'assets'])
+    return render_template('methods/promethee-decision-matrix.html', num_alternatives=3, attributes=['revenue', 'profit', 'employees', 'assets'], group=group)
 
-
+# step 4
 @app.route('/promethee/normalize', methods=['GET'])
 def promethee_normalize():
     group = request.args.get('group', 'A')
@@ -150,24 +200,29 @@ def promethee_normalize():
     
     # Retrieve classification attributes from session
     classification_attributes = session.get('classification_attributes', {})
+
     if not classification_attributes:
         error_text  = "Classification attributes not found. Please complete the previous step."
         return render_template('error.html', error_text=error_text)
     
     # Example decision matrix
-    decision_matrix = np.array([
-        [500, 5, 50, 3, 1000, 2000, -2],
-        [700, 6, 80, 4.5, 1500, 3000, 1],
-        [600, 4, 60, 2, 1200, 2500, 0]
-    ])
+    #decision_matrix = np.array([
+    #    [500, 5, 50, 3, 1000, 2000, -2],
+    #    [700, 6, 80, 4.5, 1500, 3000, 1],
+    #    [600, 4, 60, 2, 1200, 2500, 0]
+    #])
 
-      
+    # Example decision matrix
+    decision_matrix = session.get('decision_matrix', {})
+    if not decision_matrix:
+        error_text  = "Decision matrix not found. Please complete the previous step."
+        return render_template('error.html', error_text=error_text)
 
     # print("promethee_normalize:decision Matrix:", decision_matrix)
     # Normalize decision matrix
     normalized_matrix = classify_and_normalize(decision_matrix, classification_attributes)
         # Store in session
-    session['classification_attributes'] = classification_attributes
+    # session['classification_attributes'] = classification_attributes
     session['normalized_matrix'] = normalized_matrix.tolist()
     
     print("promethee_normalize: Normalized Matrix:", normalized_matrix)
@@ -175,34 +230,119 @@ def promethee_normalize():
     # Save normalized matrix (e.g., in memory or database)
     return redirect('/promethee/differences?group=' + group)
 
-
+# step 5
 @app.route('/promethee/differences', methods=['GET'])
 def promethee_differences():
     group = request.args.get('group', 'A')
 
     # Example normalized matrix (replace with saved data)
-    normalized_matrix = np.array([
-        [0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 1.0],
-        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0],
-        [0.5, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5]
-    ])
+    #normalized_matrix = np.array([
+    #    [0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 1.0],
+    #    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0],
+    #    [0.5, 0.0, 0.5, 0.0, 0.5, 0.5, 0.5]
+    #])
 
         # Retrieve from session
     normalized_matrix = np.array(session.get('normalized_matrix', []))
-    attributes = session.get('attributes', {})
+    # attributes = session.get('attributes', {})
     if normalized_matrix.size == 0:
-        return "Normalized matrix not found. Please complete the previous step."
+        error_text  = "Normalized matrix not found. Please complete the previous step."
+        return render_template('error.html', error_text=error_text)
 
     # Calculate difference matrix
     difference_matrix = calculate_difference_matrix(normalized_matrix)
-    print("Difference Matrix:", difference_matrix)
+    session['difference_matrix'] = difference_matrix.tolist()
+    print("Difference Matrix:\n", difference_matrix)
 
     # Save difference matrix (e.g., in memory or database)
-    return "Difference matrix calculated. Proceed to preference functions."
+    # return "Difference matrix calculated. Proceed to preference functions."
+    return redirect('/promethee/preference-functions?group=' + group)
+
 
 
 # Route for PROMETHEE method
-# step 3
+# step 6 
+@app.route('/promethee/preference-functions', methods=['GET'])
+def preference_functions():
+    group = request.args.get('group', 'A')
+    
+    # Retrieve difference matrix and parameter attributes
+    difference_matrix = session.get('difference_matrix', None)
+    parameter_attributes = session.get('parameter_attributes', {})
+    
+    if difference_matrix is None or not parameter_attributes:
+        error_text  = "Difference matrix or parameter attributes not found. Please complete previous steps."
+        return render_template('error.html', error_text=error_text)
+    
+    # Ensure the difference matrix is a numpy array
+    difference_matrix = np.array(difference_matrix, dtype=float)
+
+    # Define preference functions (example for linear)
+    num_alternatives = difference_matrix.shape[0]
+    num_attributes = difference_matrix.shape[2]
+    preference_matrix = np.zeros((num_alternatives, num_alternatives, num_attributes))
+
+    # Define preference functions (example for linear)
+    #preference_matrix = np.zeros_like(difference_matrix)
+
+
+    #for attr_index, (attr, params) in enumerate(parameter_attributes.items()):
+    #    for i in range(len(difference_matrix)):
+    #        for j in range(len(difference_matrix)):
+    #            diff = difference_matrix[i, j, attr_index]
+    #            if params['preference'] == 'linear':
+    #                preference_matrix[i, j, attr_index] = max(0, diff)
+                    
+    for attr_index, (attr, params) in enumerate(parameter_attributes.items()):
+        for i in range(num_alternatives):
+            for j in range(num_alternatives):
+                diff = difference_matrix[i, j, attr_index]
+                if params['preference'] == 'linear':
+                    preference_matrix[i, j, attr_index] = max(0, diff)
+
+    # Save preference matrix in session
+    session['preference_matrix'] = preference_matrix.tolist()
+    print("Preference Matrix:\n", preference_matrix)
+
+    return redirect('/promethee/aggregate?group=' + group)
+
+
+@app.route('/promethee/aggregate', methods=['GET'])
+def aggregate_preferences():
+    group = request.args.get('group', 'A')
+
+    # Retrieve preference matrix and parameter attributes
+    preference_matrix = np.array(session.get('preference_matrix', []))
+    parameter_attributes = session.get('parameter_attributes', {})
+    company_names = session.get('company_names', [])  # Retrieve company names
+
+    if preference_matrix.size == 0 or not parameter_attributes:
+        error_text  = "Preference matrix or parameter attributes not found. Please complete previous steps."
+        return render_template('error.html', error_text=error_text)
+    
+    # Compute aggregated preference matrix
+    weights = [params['weight'] for params in parameter_attributes.values()]
+    aggregated_preferences = np.sum(preference_matrix * weights, axis=2)
+    print("Aggregated Preference Matrix:\n", aggregated_preferences)
+
+    # Compute net flows
+    positive_flows = np.mean(aggregated_preferences, axis=1)
+    negative_flows = np.mean(aggregated_preferences, axis=0)
+    net_flows = positive_flows - negative_flows
+
+  # Link company names to Phi values
+    results = [
+        {"alternative": company_names[i] if i < len(company_names) else f"Alt {i+1}", "phi": net_flows[i]}
+        for i in range(len(net_flows))
+    ]
+    results = sorted(results, key=lambda x: x['phi'], reverse=True)  # Sort by Phi descending
+    session['promethee_results'] = results
+
+    return render_template('methods/promethee-results.html', results=results, group=group)
+
+
+# Route for PROMETHEE method
+# next step ?? or 3
 @app.route('/promethee/classify', methods=['POST'])
 def classify_attributes():
 
@@ -242,6 +382,7 @@ def classify_attributes():
 
 
 
+
 @app.route('/companies')
 def companies_table():
     # companies = scrape_fortune500(FORTUNE_URL)  # Pridobi podatke
@@ -260,12 +401,14 @@ def scrape_and_save():
     return render_template('scrape.html')
 
 
+
 # API endpoints
 # Endpoint za scraping Fortune 500
 @app.route('/api/scrape-fortune-500')
 def scrape_fortune_500_route():
     companies = scrape_fortune500(FORTUNE_URL)
     return companies.to_json(orient='records'), 200, {'Content-Type': 'application/json'}
+
 
 
 
@@ -293,8 +436,12 @@ def select_companies():
 
 
 
+
 @app.route('/ahp', methods=['GET', 'POST'])
 def ahp():
+
+
+    
     if request.method == 'POST':
 
         # Preberi skupino iz URL parametra (GET)
@@ -312,7 +459,7 @@ def ahp():
             'assets': float(request.form['assets']),
             'change_in_rank': float(request.form.get('change_in_rank', 0.0)),
         }
-
+        
 
         # Preveri, ali so vse uteži pozitivne
         if any(w <= 0 for w in weights.values()):
@@ -364,11 +511,13 @@ def ahp():
         # calculate_ahp_with_method_id(companies, weights)
         calculate_ahp_advance_with_method_id(companies, weights)
 
-        return redirect(url_for('results', method_id=1)) # method_id='AHP'))
+        return redirect(url_for('results', method_id=1, group=group)) # method_id='AHP'))
     
     # Če je GET zahteva, pokaži obrazec
     group = request.args.get('group', 'A')  # Privzeto skupina A
     return render_template('methods/ahp.html', group=group)
+
+
 
 
 #@app.route('/ahp/results')
@@ -379,18 +528,20 @@ def ahp():
 @app.route('/results/<int:method_id>')
 def results(method_id):
 
+    group = request.args.get('group', 'A') 
     results = get_results(method_id)
     # method_name = "AHP" if method_id == 1 else "PROMETHEE" if method_id == 2 else "WSM"
     method_name = METHODS.get(method_id, "Unknown Method")  # Dobimo ime metode
-    return render_template('results.html', method_name=method_name, results=results)
+    return render_template('results.html', method_name=method_name, results=results, group=group)
 
 
 
 @app.route('/compare')
 def compare():
     ahp_results = get_results(1)
-    promethee_results = get_results(2)
-    wsm_results = get_results(3)
+    topsis_results= get_results(2)
+    promethee_results = get_results(3)
+    wsm_results = get_results(4)
     return render_template('compare.html', ahp=ahp_results, promethee=promethee_results, wsm=wsm_results)
 
 

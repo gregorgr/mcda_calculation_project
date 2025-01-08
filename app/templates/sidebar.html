@@ -25,12 +25,19 @@
             </li>
         </ul>
         </li>
-
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="/topsis{% if group %}?group={{ group }}{% endif %}">Topsis</a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a title="Topsis results" class="nav-link text-white" href="/results/2">results</a>
+                </li>
+            </ul>
+        </li>
         <li class="nav-item mb-2">
             <a class="nav-link text-white" href="/promethee{% if group %}?group={{ group }}{% endif %}">PROMETHEE</a>
             <ul>
                 <li class="nav-item mb-2">
-                    <a title="Promethee results" class="nav-link text-white" href="/results/2">results</a>
+                    <a title="Promethee results" class="nav-link text-white" href="/results/3">results</a>
                 </li>
             </ul>
         </li>
@@ -38,7 +45,7 @@
             <a class="nav-link text-white" href="/wsm{% if group %}?group={{ group }}{% endif %}">WSM</a>
             <ul>
                 <li class="nav-item mb-2">
-                    <a title="WSM results" class="nav-link text-white" href="/results/3">results</a>
+                    <a title="WSM results" class="nav-link text-white" href="/results/4">results</a>
                 </li>
             </ul>
         </li>
