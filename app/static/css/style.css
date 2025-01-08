@@ -46,7 +46,9 @@ nav h3{
 
 }
 
-
+.distinct-label .form-label{
+    font-size: 1.1rem;
+}
 
    @keyframes logo-spin {
      from {

@@ -40,10 +40,86 @@ def promethee():
 
     group = request.args.get('group', 'A')  # Default group "A" if not provided
     #Render the main page for the PROMETHEE method.
+    attributes = {
+        'revenue': 'beneficial',
+        'revenue_percent_change': 'beneficial',
+        'profit': 'beneficial',
+        'profits_percent_change': 'beneficial',
+        'employees': 'beneficial',
+        'assets': 'beneficial',
+        'change_in_rank': 'non-beneficial'
+    }
+
+    # Normalize decision matrix
+    #normalized_matrix = classify_and_normalize(decision_matrix, attributes)
+    #print("Normalized Matrix:\n", normalized_matrix)
+    # Calculate difference matrix
+    #difference_matrix = calculate_difference_matrix(normalized_matrix)
+    #print("Difference Matrix:\n", difference_matrix)
 
     # Render the template specific for PROMETHEE
-    return render_template('methods/promethee-main.html')
+    return render_template('methods/promethee-classify.html', attributes=attributes, group=group)
 
+
+@app.route('/promethee/classify', methods=['POST'])
+def classify_attributes():
+
+    group = request.form.get('group')  # Retrieve the group
+    attributes = {
+        'revenue': request.form.get('revenue'),
+        'revenue_percent_change': request.form.get('revenue_percent_change'),
+        'profit': request.form.get('profit'),
+        'profits_percent_change': request.form.get('profits_percent_change'),
+        'employees': request.form.get('employees'),
+        'assets': request.form.get('assets'),
+        'change_in_rank': request.form.get('change_in_rank')
+    }
+    # Save or use attributes for normalization
+    #return redirect('/promethee')
+        # Log the updated classifications (can be replaced with saving to a database or file)
+    print(f"Group: {group}, Attributes: {attributes}")
+
+        # Normalize decision matrix
+    normalized_matrix = classify_and_normalize(decision_matrix, attributes)
+    print("Normalized Matrix:\n", normalized_matrix)
+    # Calculate difference matrix
+    difference_matrix = calculate_difference_matrix(normalized_matrix)
+    print("Difference Matrix:\n", difference_matrix)
+    #return render_template('methods/promethee-main.html')
+    # Redirect to the next step in PROMETHEE
+    # return redirect('/promethee/next')
+    return redirect('/promethee')  # Replace '/promethee/next' with the next step
+
+@app.route('/promethee/parameters', methods=['GET', 'POST'])
+def promethee_parameters():
+    group = request.args.get('group', 'A')  # Default group "A"
+
+    # Prednastavljene uteži in preferenčne funkcije
+    attributes = {
+        'revenue': {'weight': 0.2, 'preference': 'linear'},
+        'revenue_percent_change': {'weight': 0.2, 'preference': 'linear'},
+        'profit': {'weight': 0.2, 'preference': 'linear'},
+        'profits_percent_change': {'weight': 0.1, 'preference': 'linear'},
+        'employees': {'weight': 0.1, 'preference': 'linear'},
+        'assets': {'weight': 0.1, 'preference': 'linear'},
+        'change_in_rank': {'weight': 0.1, 'preference': 'threshold'}
+    }
+
+    if request.method == 'POST':
+        # Obdelava posodobljenih uteži in preferenc
+        for attr in attributes.keys():
+            attributes[attr]['weight'] = float(request.form.get(f'{attr}_weight', attributes[attr]['weight']))
+            attributes[attr]['preference'] = request.form.get(f'{attr}_preference', attributes[attr]['preference'])
+
+        # Debug: Prikaz posodobljenih parametrov
+        print("Updated attributes:", attributes)
+
+        # Ponovni izračun PROMETHEE (vključite svojo funkcijo za izračun)
+        # results = calculate_promethee(group, attributes)
+
+        return redirect('/promethee/results')  # Replace with the results page
+
+    return render_template('methods/promethee-parameters.html', attributes=attributes, group=group)
 
 @app.route('/companies')
 def companies_table():

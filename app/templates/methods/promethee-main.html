@@ -3,47 +3,5 @@
 {% block content %}
     <h1>PROMETHEE Decision Support Tool</h1>
 
-    <h2>Select alternatives</h2>
-    <form action="/promethee/process" method="post">
-        <table>
-            <tr>
-                <th>Alternatives</th>
-                <th>Attribute 1</th>
-                <th>Attribute 2</th>
-                <th>Attribute 3</th>
-            </tr>
-            <tr>
-                <td>Alternative 1</td>
-                <td>
-                    <select name="alt1_attr1">
-                        <option value="Low">Low</option>
-                        <option value="Below Average">Below Average</option>
-                        <option value="Average">Average</option>
-                        <option value="Good">Good</option>
-                        <option value="Excellent">Excellent</option>
-                    </select>
-                </td>
-                <td>
-                    <select name="alt1_attr2">
-                        <option value="Low">Low</option>
-                        <option value="Below Average">Below Average</option>
-                        <option value="Average">Average</option>
-                        <option value="Good">Good</option>
-                        <option value="Excellent">Excellent</option>
-                    </select>
-                </td>
-                <td>
-                    <select name="alt1_attr3">
-                        <option value="Low">Low</option>
-                        <option value="Below Average">Below Average</option>
-                        <option value="Average">Average</option>
-                        <option value="Good">Good</option>
-                        <option value="Excellent">Excellent</option>
-                    </select>
-                </td>
-            </tr>
-            <!-- Repeat for other alternatives -->
-        </table>
-        <button type="submit">Submit</button>
-    </form>
-    {% endblock %}
+  
+{% endblock %}

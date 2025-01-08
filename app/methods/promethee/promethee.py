@@ -2,6 +2,60 @@
 import numpy as np
 import pandas as pd
 
+
+
+def calculate_difference_matrix(normalized_matrix):
+    """
+    Calculate the difference matrix for each pair of alternatives.
+
+    Parameters:
+        normalized_matrix (numpy.ndarray): Normalized decision matrix.
+
+    Returns:
+        numpy.ndarray: Difference matrix (alternatives x alternatives x attributes).
+    """
+    num_alternatives, num_attributes = normalized_matrix.shape
+    difference_matrix = np.zeros((num_alternatives, num_alternatives, num_attributes))
+
+    for a in range(num_alternatives):
+        for b in range(num_alternatives):
+            difference_matrix[a, b] = normalized_matrix[a] - normalized_matrix[b]
+
+    return difference_matrix
+
+
+
+def classify_and_normalize(matrix, attributes):
+    """
+    Classify attributes into beneficial and non-beneficial categories
+    and normalize the evaluation matrix.
+
+    Parameters:
+        matrix (numpy.ndarray): Decision matrix (alternatives x attributes).
+        attributes (dict): Dictionary of attribute classifications:
+            {'attribute_name': 'beneficial' or 'non-beneficial'}.
+
+    Returns:
+        numpy.ndarray: Normalized decision matrix.
+    """
+    normalized_matrix = np.zeros_like(matrix, dtype=float)
+
+    for j, (attr_name, attr_type) in enumerate(attributes.items()):
+        column = matrix[:, j]
+        
+        if attr_type == 'beneficial':
+            # Normalization for beneficial attributes
+            normalized_matrix[:, j] = (column - np.min(column)) / (np.max(column) - np.min(column))
+        elif attr_type == 'non-beneficial':
+            # Normalization for non-beneficial attributes
+            normalized_matrix[:, j] = (np.max(column) - column) / (np.max(column) - np.min(column))
+        else:
+            raise ValueError(f"Invalid attribute type for '{attr_name}': {attr_type}")
+
+    return normalized_matrix
+
+
+
 def linguistic_to_numeric(matrix):
     """
     Convert linguistic values to numeric values for the decision matrix.
