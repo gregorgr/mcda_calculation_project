@@ -6,6 +6,8 @@ import numpy as np
 from constants import METHODS, FORTUNE_URL, SECRET_KEY
 from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
 from methods.promethee.promethee import classify_and_normalize, calculate_difference_matrix
+from methods.topsis.topsis import topsis_normalize_decision_matrix
+from methods.utils import normalize_weights  # Posodobljen uvoz
 import locale
 
 locale.setlocale(locale.LC_ALL, 'sl_SI.UTF-8')
@@ -34,10 +36,50 @@ def home():
 
 
 
-@app.route('/topsis', methods=['GET'])
-def topsis_main():
-    return render_template('methods/topsis.html')
 
+@app.route('/topsis', methods=['GET', 'POST'])
+def topsis_main():
+    criterias = ['revenue', 'revenue_percent_change', 'profit', 
+                 'profits_percent_change', 'employees', 'assets', 
+                 'change_in_rank']
+    
+    if request.method == 'POST':
+        # Preberi uteži iz POST zahtevka
+        weights = {criteria: float(request.form.get(criteria, 0)) for criteria in criterias}
+        # Normaliziraj uteži
+        normalized_weights = normalize_weights(weights)
+
+        # Shranimo v sejo
+        session['topsis-weights'] = normalized_weights
+
+
+        #return render_template('methods/topsis.html')
+        return render_template('methods/topsis-form.html')
+    
+    # Preveri, če so uteži že v seji
+    normalized_weights = session.get('topsis-weights', {})
+   
+    #return render_template('methods/topsis-form.html', 
+    #                       criterias=criterias, 
+    #                       weights=normalized_weights)
+    return render_template('methods/topsis-form-weights.html', 
+                           criterias=criterias, 
+                           weights=normalized_weights)
+
+@app.route('/topsis/normalize', methods=['POST'])
+def topsis_normalize():
+    # Preberi alternativne podatke iz POST zahtevka
+    alternatives = request.json.get('alternatives', [])
+    normalized_weights = session.get('topsis-weights', {})
+
+    if not normalized_weights:
+        return {"error": "Weights not set."}, 400
+
+    # Normaliziraj matriko
+    from methods.topsis.topsis import normalize_decision_matrix
+    normalized_matrix = normalize_decision_matrix(alternatives, normalized_weights)
+
+    return {"normalized_matrix": normalized_matrix}
 
 
 @app.route('/wsm1', methods=['GET', 'POST'])
@@ -771,7 +813,10 @@ def round_mcda_scores(companies, methods, rounding_array):
 
                     # Posodobi rezultat v tabeli
                     company['scores'][method] = formatted_score
+
     return companies
+
+
 
 
 
