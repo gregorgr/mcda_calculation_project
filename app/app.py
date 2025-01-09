@@ -7,7 +7,8 @@ from constants import METHODS, FORTUNE_URL, SECRET_KEY
 from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
 from methods.promethee.promethee import classify_and_normalize, calculate_difference_matrix
 from methods.topsis.topsis import topsis_normalize_decision_matrix
-from methods.utils import normalize_weights ,  round_mcda_scores, round_mcda_method_scores, format_data_numbers # Posodobljen uvoz
+from methods.utils import normalize_weights, format_data_numbers, round_mcda_method_scores, round_mcda_scores
+ #,  # Posodobljen uvoz
 import locale
 
 locale.setlocale(locale.LC_ALL, 'sl_SI.UTF-8')

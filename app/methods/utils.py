@@ -83,27 +83,31 @@ def round_mcda_method_scores(results, round_to):
 
 def round_mcda_scores(companies, methods, rounding_array):
     """
-    Zaokroži in formatira rezultate v tabeli `scores` glede na `rounding_array`.
+    Round and format results in the `scores` table while preserving original values for sorting.
 
-    :param companies: Seznam podjetij s tabelo `scores`.
-    :param methods: Seznam metod (ime stolpcev v `scores`).
-    :param rounding_array: Seznam zaokroževanj za vsako metodo.
-    :return: Posodobljen seznam podjetij z zaokroženimi vrednostmi.
+    :param companies: List of companies with their `scores`.
+    :param methods: List of methods (columns in `scores`).
+    :param rounding_array: List of decimal places for rounding each method.
+    :return: Updated list of companies with both original and formatted values.
     """
     for company in companies:
-            for method_index, method in enumerate(methods):
-                if method in company['scores']:
-                    # Pridobi originalni rezultat
-                    original_score = company['scores'][method]
+        company['scores_original'] = {}  # Store original scores for sorting
+        for method_index, method in enumerate(methods):
+            if method in company['scores']:
+                # Get the original score
+                original_score = company['scores'][method]
 
-                    # Zaokroži rezultat glede na določen indeks
-                    rounded_score = round(original_score, rounding_array[method_index])
+                # Round the score
+                rounded_score = round(original_score, rounding_array[method_index])
 
-                    # Formatiraj številko s piko za tisočice in vejico za decimalke
-                    formatted_score = "{:,.{precision}f}".format(rounded_score, precision=rounding_array[method_index])
-                    formatted_score = formatted_score.replace(",", "X").replace(".", ",").replace("X", ".")  # Slovenski zapis
+                # Store the original score for sorting
+                company['scores_original'][method] = rounded_score
 
-                    # Posodobi rezultat v tabeli
-                    company['scores'][method] = formatted_score
+                # Format the score for display
+                formatted_score = "{:,.{precision}f}".format(rounded_score, precision=rounding_array[method_index])
+                formatted_score = formatted_score.replace(",", "X").replace(".", ",").replace("X", ".")  # Slovene format
+
+                # Update the displayed score
+                company['scores'][method] = formatted_score
 
     return companies

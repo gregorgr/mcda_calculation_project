@@ -29,3 +29,36 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+let sortOrder = {};  
+
+// Function to sort companies by the selected method or name
+function sortTable(methodIndex) {
+        const companies = Array.from(document.querySelectorAll('.company-row'));
+        const container = document.getElementById('companies-container');
+
+        // Toggle sort order for the selected column
+        sortOrder[methodIndex] = !sortOrder[methodIndex];
+
+        companies.sort((a, b) => {
+            let valueA, valueB;
+
+            if (methodIndex === 'name') {
+                // Sort alphabetically by name
+                valueA = a.dataset.name.toLowerCase();
+                valueB = b.dataset.name.toLowerCase();
+                return sortOrder[methodIndex]
+                    ? valueA.localeCompare(valueB)
+                    : valueB.localeCompare(valueA);
+            } else {
+                // Sort numerically for other columns
+                valueA = parseFloat(a.dataset[methodIndex]) || 0;
+                valueB = parseFloat(b.dataset[methodIndex]) || 0;
+                return sortOrder[methodIndex] ? valueA - valueB : valueB - valueA;
+            }
+        });
+
+        // Clear and re-append sorted rows
+        container.innerHTML = '';
+        companies.forEach(row => container.appendChild(row));
+    }
