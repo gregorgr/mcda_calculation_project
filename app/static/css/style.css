@@ -151,13 +151,13 @@ nav h3{
     display: grid;
     grid-template-rows: auto 1fr;
     gap: 5px;
-    width: 90%;
+    width: 100%;
 }
 
 
 .table-header {
     display: grid;
-    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 80px;
+    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 50px;
     grid-template-columns: repeat(10, 1fr); /* 10 stolpcev */
     background-color: #343a40;
     color: white;
@@ -173,7 +173,7 @@ nav h3{
 
 .table-row {
     display: grid;
-    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 80px;
+    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 50px;
     padding: 10px;
     border-bottom: 1px solid #dee2e6;
     background-color: #f8f9fa;
@@ -181,12 +181,12 @@ nav h3{
 }
 
 .table-selection div.table-header{
-    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px;
-    grid-template-columns: repeat(9, 1fr); /* 9 stolpcev */
+    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 50px;
+    grid-template-columns: repeat(10, 1fr); /* 9 stolpcev */
 }
 .table-selection div.table-row{
-    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px;
-    grid-template-columns: repeat(9, 1fr); /* 9 stolpcev */
+    grid-template-columns: 50px 200px 140px 50px 140px 50px 150px 100px 150px 60px;
+    grid-template-columns: repeat(10, 1fr); /* 9 stolpcev */
     padding: 5px;
 }
 
@@ -201,7 +201,10 @@ nav h3{
     background-color: #f8f9fa00;
     border: none;
 }
-
+.table-col-last {
+   text-align: right;
+   padding-right: 10px;
+}
 
 
 

@@ -38,7 +38,6 @@ A Flask-based web application for Multi-Criteria Decision Analysis (MCDA). This 
 mcda_calculation_project/
 ├── app
 │   ├── app.py
-│   ├── app_v0.001.py
 │   ├── constants.py
 │   ├── db
 │   │   ├── database.py
@@ -49,8 +48,12 @@ mcda_calculation_project/
 │   ├── methods
 │   │   ├── ahp
 │   │   ├── promethee
+│   │   ├── __pycache__
+│   │   ├── topsis
+│   │   ├── utils.py
 │   │   └── wsm
 │   ├── __pycache__
+│   │   ├── app.cpython-313.pyc
 │   │   └── constants.cpython-313.pyc
 │   ├── routes.py
 │   ├── scrape500
@@ -63,6 +66,8 @@ mcda_calculation_project/
 │   │   ├── base.html
 │   │   ├── companies
 │   │   ├── compare.html
+│   │   ├── compare-simple.html
+│   │   ├── error.html
 │   │   ├── header.html
 │   │   ├── home.html
 │   │   ├── index.html
@@ -79,12 +84,15 @@ mcda_calculation_project/
 │       ├── lib64 -> lib
 │       └── pyvenv.cfg
 ├── config.py
+├── fortune500.db
 ├── README.md
 ├── requirements.txt
 └── tests
     ├── database.py
     ├── models.py
     └── test_app.py
+
+24 directories, 32 files
 
 ```
 

@@ -29,17 +29,19 @@
 <h3>Selected Companies (Group {{ group }})</h3>
 <div class="table-container table-selection">
     <!-- Header -->
-    <div class="table-header ">
-        <div class="col-rank">Rank</div>
-        <div class="col-name"><span>Name</span></div>
-        <div class="col-currency">Revenue<br />[$]</div>
-        <div>Revenue<br />Change<br />[%]</div>
-        <div class="col-currency">Profit<br />[$]</div>
-        <div>Profit<br />Change<br />[%] </div>
-        <div>Employees</div>
-        <div class="col-no">Change in<br />Rank</div>
-        <div class="col-currency">Assets<br />[$]</div>
+    <div class="table-header">
+        <div class="col-rank" data-sort-order="asc">Rank</div>
+        <div class="col-name" data-sort-order="asc">Name</div>
+        <div class="col-currency" data-sort-order="asc">Revenue [$]</div>
+        <div data-sort-order="asc">Revenue Change [%]</div>
+        <div class="col-currency" data-sort-order="asc">Profit [$]</div>
+        <div data-sort-order="asc">Profit Change [%]</div>
+        <div data-sort-order="asc">Employees</div>
+        <div class="col-no" data-sort-order="asc">Change in Rank</div>
+        <div class="col-currency" data-sort-order="asc">Assets [$]</div>
+        <div class="table-col-last" data-sort-order="asc">Years on List</div>
     </div>
+    
     <!-- Content -->
     <div class="table-body">
         {% for company in companies %}
@@ -48,14 +50,14 @@
                 {{ company.rank }}
             </div>
             <div class="col-name"><a href="/companies/{{ company.id }}" alt="Details" target="_blank" class="btn btn-primary btn-sm"><b>{{ company.name }}</b></a></div>
-            <div class="col-currency">${{ "{:,.2f}".format(company.revenue) }}</div>
-            <div>{{ company.revenue_percent_change }}%</div>
-            <div class="col-currency">${{ "{:,.2f}".format(company.profit) }}</div>
-            <div>{{ company.profits_percent_change }}%</div>
+            <div class="col-currency">{{ company.formatted_revenue }}</div>
+            <div>{{ company.formatted_revenue_change }}%</div>
+            <div class="col-currency">{{ company.formatted_profit }}</div>
+            <div>{{ company.formatted_profit_change}}%</div>
             <div>{{ "{:,.0f}".format(company.employees) }}</div>     
             <div class="col-no">{{ company.change_in_rank }}</div>
             <div class="col-currency">${{ "{:,.2f}".format(company.assets) }}</div>
-         
+            <div class="table-col-last">{{ company.years_on_list }}</div> <!-- Novo -->
         </div>
         {% endfor %}
     </div>
