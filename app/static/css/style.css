@@ -45,6 +45,11 @@ nav h3{
     text-decoration: none;
 
 }
+.step-focus a {
+    color: #000;
+    text-decoration: none;
+    font-weight: normal;
+}
 .form-step {
     margin: 0;
     width: 100%;

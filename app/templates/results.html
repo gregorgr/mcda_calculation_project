@@ -15,7 +15,7 @@
         <tr>
             <td>{{ loop.index }}</td>
             <td>{{ result['company_name'] }}</td>
-            <td>{{ "{:.3f}".format(result['score'] or 0) }}</td>
+            <td>{{ result['score'] or 0 }}</td>
         </tr>
         {% endfor %}
     </tbody>

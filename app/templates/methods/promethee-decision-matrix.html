@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>PROMETHEE Decision Support Tool</h1>
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">PROMETHEE Decision Support Tool</h1>
     <div class="form-step">
         <ul>
-            <li >Step 1</li>
-            <li >Step 2</li>
-            <li class="step-focus">Step 3</li>
+            <li><a href="/promethee?group={{ group }}">Step 1</a></a></li>
+            <li ><a href="/promethee/parameters?group={{ group }}">Step 2</a></li>
+            <li class="step-focus"><a href="/promethee/decision-matrix?group={{ group }}">Step 3</a></a></li>
         </ul>
     </div>
     <h2 class="mb-4 text-left">Decision matrix for group {{ group }}</h2>
@@ -29,6 +30,6 @@
         {% endfor %}
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-    
+</div> 
   
 {% endblock %}
