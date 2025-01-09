@@ -701,10 +701,10 @@ def compare():
     # Retrieve results using the helper function
     rows = get_all_results_with_methods(group)
 
-    print("debug COMPARE(): rows")
-    print(rows)
-    for row in rows:
-        print(row)  # Pretvori SQLite Row v navaden slovar
+    #print("debug COMPARE(): rows")
+    #print(rows)
+    #for row in rows:
+    #    print(row)  # Pretvori SQLite Row v navaden slovar
 
     # Organize results by company
     comparison_data = {}
@@ -713,10 +713,12 @@ def compare():
         if company_id not in comparison_data:
             comparison_data[company_id] = {'name': company_name, 'scores': {}}
         comparison_data[company_id]['scores'][METHODS[method_id]] = score
-
+ 
     # Prepare companies for rendering
     companies = list(comparison_data.values())
-
+    rounding_array = [3,  4, 1] 
+    methods = ["AHP", "PROMETHEE", "WSM"]
+    companies = round_mcda_scores(companies, methods, rounding_array)
     return render_template('compare.html', methods=METHODS.values(), companies=companies, group=group)
 
     # return render_template('compare.html', group=group, ahp=ahp_results, promethee=promethee_results, wsm=wsm_results)
@@ -740,6 +742,39 @@ def format_data_numbers(rows):
         # Dodaj formatiran slovar v seznam
         formatted_list.append(company)
     return formatted_list
+
+
+
+
+
+def round_mcda_scores(companies, methods, rounding_array):
+    """
+    Zaokroži in formatira rezultate v tabeli `scores` glede na `rounding_array`.
+
+    :param companies: Seznam podjetij s tabelo `scores`.
+    :param methods: Seznam metod (ime stolpcev v `scores`).
+    :param rounding_array: Seznam zaokroževanj za vsako metodo.
+    :return: Posodobljen seznam podjetij z zaokroženimi vrednostmi.
+    """
+    for company in companies:
+            for method_index, method in enumerate(methods):
+                if method in company['scores']:
+                    # Pridobi originalni rezultat
+                    original_score = company['scores'][method]
+
+                    # Zaokroži rezultat glede na določen indeks
+                    rounded_score = round(original_score, rounding_array[method_index])
+
+                    # Formatiraj številko s piko za tisočice in vejico za decimalke
+                    formatted_score = "{:,.{precision}f}".format(rounded_score, precision=rounding_array[method_index])
+                    formatted_score = formatted_score.replace(",", "X").replace(".", ",").replace("X", ".")  # Slovenski zapis
+
+                    # Posodobi rezultat v tabeli
+                    company['scores'][method] = formatted_score
+    return companies
+
+
+
 
 
 
