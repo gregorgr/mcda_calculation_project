@@ -33,32 +33,38 @@ document.addEventListener("DOMContentLoaded", function () {
 let sortOrder = {};  
 
 // Function to sort companies by the selected method or name
-function sortTable(methodIndex) {
-        const companies = Array.from(document.querySelectorAll('.company-row'));
-        const container = document.getElementById('companies-container');
+function sortTable(column, containerId = 'results-container') {
+    const rows = Array.from(document.querySelectorAll(`#${containerId} .result-row`));
+    const container = document.getElementById(containerId);
 
-        // Toggle sort order for the selected column
-        sortOrder[methodIndex] = !sortOrder[methodIndex];
+    // Toggle sort order for the selected column
+    sortOrder[column] = !sortOrder[column];
 
-        companies.sort((a, b) => {
-            let valueA, valueB;
+    rows.sort((a, b) => {
+        let valueA, valueB;
 
-            if (methodIndex === 'name') {
-                // Sort alphabetically by name
-                valueA = a.dataset.name.toLowerCase();
-                valueB = b.dataset.name.toLowerCase();
-                return sortOrder[methodIndex]
-                    ? valueA.localeCompare(valueB)
-                    : valueB.localeCompare(valueA);
-            } else {
-                // Sort numerically for other columns
-                valueA = parseFloat(a.dataset[methodIndex]) || 0;
-                valueB = parseFloat(b.dataset[methodIndex]) || 0;
-                return sortOrder[methodIndex] ? valueA - valueB : valueB - valueA;
-            }
-        });
+        if ( column === 'score' || column === 'rank') {
+            // Numeric sorting
+            valueA = parseFloat(a.dataset[column]) || 0;
+            valueB = parseFloat(b.dataset[column]) || 0;
+            return sortOrder[column] ? valueA - valueB : valueB - valueA;
+        } else if (column.startsWith('data-')) {
+            // get index number from column is data-index
+            const index = column.split('-')[1];
+            valueA = parseFloat(a.dataset[index]) || 0;
+            valueB = parseFloat(b.dataset[index]) || 0;
+            return sortOrder[column] ? valueA - valueB : valueB - valueA;
+        }else if (column === 'company_name') {
+            // Alphabetical sorting
+            valueA = a.dataset.company_name.toLowerCase();
+            valueB = b.dataset.company_name.toLowerCase();
+            return sortOrder[column]
+                ? valueA.localeCompare(valueB)
+                : valueB.localeCompare(valueA);
+        }
+    });
 
-        // Clear and re-append sorted rows
-        container.innerHTML = '';
-        companies.forEach(row => container.appendChild(row));
-    }
+    // Clear and re-append sorted rows
+    container.innerHTML = '';
+    rows.forEach(row => container.appendChild(row));
+}

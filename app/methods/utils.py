@@ -70,12 +70,13 @@ def round_mcda_method_scores(results, round_to):
         new_row['id'] = company['id']
         new_row['method_id'] = company['method_id']
         new_row['company_id'] = company['company_id']
+        new_row['name'] = company['company_name']
         new_row['company_name'] = company['company_name']
-        new_row['score'] = formatted_score
+        new_row['formatted_score'] = formatted_score
+        new_row['score'] = company['score']
 
         # Add the new row to the formatted list
         formatted_list.append(new_row)
-
 
     return formatted_list
 
