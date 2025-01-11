@@ -1,0 +1,60 @@
+<nav class="vh-100 p-3">
+    <h3>Navigation</h3>
+    <ul class="nav flex-column">
+        <li><h4>Functions</h4></li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path == '/api/scrape-fortune-500' %}active{% endif %}" href="/api/scrape-fortune-500" target="_blank">
+                Scrape Fortune 500
+            </a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white {% if current_path == '/' %}active{% endif %}" href="/">Scrape and Save</a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path == '/companies' %}active{% endif %}" href="/companies">Fortune 500</a>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path == '/select-companies' %}active{% endif %}" href="/select-companies">Select companies</a>
+        </li>
+        <li><h4>Methods</h4></li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path.startswith('/ahp') %}active{% endif %}" href="/ahp{% if group %}?group={{ group }}{% endif %}">AHP</a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white {% if current_path == '/results/1' %}active{% endif %}" href="/results/1">results</a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path.startswith('/topsis') %}active{% endif %}" href="/topsis{% if group %}?group={{ group }}{% endif %}">Topsis</a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white {% if current_path == '/results/2' %}active{% endif %}" href="/results/2">results</a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path.startswith('/promethee') %}active{% endif %}"  href="/promethee{% if group %}?group={{ group }}{% endif %}">PROMETHEE</a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white {% if current_path == '/results/3' %}active{% endif %}" title="Promethee results" class="nav-link text-white" href="/results/3">results</a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path.startswith('/wsm') %}active{% endif %}"  href="/wsm{% if group %}?group={{ group }}{% endif %}">WSM</a>
+            <ul>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white {% if current_path == '/results/4' %}active{% endif %}" title="WSM results" class="nav-link text-white" href="/results/4">results</a>
+                </li>
+            </ul>
+        </li>
+        <!-- Repeat for other methods -->
+        <li><h4>Results</h4></li>
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white {% if current_path == '/compare' %}active{% endif %}" href="/compare{% if group %}?group={{ group }}{% endif %}">Compare</a>
+        </li>
+    </ul>
+    </nav>

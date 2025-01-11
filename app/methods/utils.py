@@ -179,3 +179,24 @@ def normalize_scores(companies, methods):
             company['scores_normalized'][method] = normalized
 
     return companies
+
+
+def normalize_results_scores(results):
+    """
+    Normalize scores to the range [0, 1].
+
+    Parameters:
+        results (list): List of results with scores.
+
+    Returns:
+        list: Updated results with normalized scores.
+    """
+    scores = [result['score'] for result in results]
+    min_score = min(scores)
+    max_score = max(scores)
+    range_score = max_score - min_score if max_score != min_score else 1  # Avoid division by zero
+
+    for result in results:
+        result['normalized_score'] = (result['score'] - min_score) / range_score
+
+    return results

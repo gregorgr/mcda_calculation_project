@@ -1,58 +1,25 @@
 <nav class="vh-100 p-3">
-    <h3>Navigation</h3>
+    {% for section in sidebar_links %}
+    <h4>{{ section.title }}</h4>
     <ul class="nav flex-column">
-        <li><h4>Functions</h4></li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/api/scrape-fortune-500" target="_blank">Scrape Fortune 500</a>
-            <ul>
-                <li class="nav-item mb-2">
-                   <!-- <a class="nav-link text-white" href="/scrape-and-save">Scrape and Save</a>-->
-                   <a class="nav-link text-white" href="/">Scrape and Save</a>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/companies">Fortune 500</a>
-        </li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/select-companies">Select companies</a>
-        </li>
-        <li><h4>Methods</h4></li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/ahp{% if group %}?group={{ group }}{% endif %}">AHP</a>
-        <ul>
+        {% for link in section.links %}
             <li class="nav-item mb-2">
-                <a title="AHP results" class="nav-link text-white" href="/results/1">results</a>
+                <a class="nav-link text-white {% if current_path == link.url %}active{% endif %}" href="{{ link.url }}">
+                    {{ link.name }}
+                </a>
+                {% if link.sub_links %}
+                    <ul>
+                        {% for sub_link in link.sub_links %}
+                            <li class="nav-item mb-2">
+                                <a class="nav-link text-white {% if current_path == sub_link.url %}active{% endif %}" href="{{ sub_link.url }}">
+                                    {{ sub_link.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </li>
-        </ul>
-        </li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/topsis{% if group %}?group={{ group }}{% endif %}">Topsis</a>
-            <ul>
-                <li class="nav-item mb-2">
-                    <a title="Topsis results" class="nav-link text-white" href="/results/2">results</a>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/promethee{% if group %}?group={{ group }}{% endif %}">PROMETHEE</a>
-            <ul>
-                <li class="nav-item mb-2">
-                    <a title="Promethee results" class="nav-link text-white" href="/results/3">results</a>
-                </li>
-            </ul>
-        </li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/wsm{% if group %}?group={{ group }}{% endif %}">WSM</a>
-            <ul>
-                <li class="nav-item mb-2">
-                    <a title="WSM results" class="nav-link text-white" href="/results/4">results</a>
-                </li>
-            </ul>
-        </li>
-        <li><h4>Results</h4></li>
-        <li class="nav-item mb-2">
-            <a class="nav-link text-white" href="/compare{% if group %}?group={{ group }}{% endif %}">Compare</a>
-        </li>
+        {% endfor %}
     </ul>
-</nav>
+{% endfor %}
+    </nav>

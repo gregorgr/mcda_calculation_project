@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>ERROR</h2>
-<div>
-    <p>{{ error_text }}</p>
+<div class="container mt-5">
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Error</h4>
+        <p>{{ error_text }}</p>
+        <hr>
+        <a href="/" class="btn btn-primary">Back to Home</a>
+    </div>
 </div>
 {% endblock %}

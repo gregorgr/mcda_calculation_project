@@ -12,36 +12,40 @@
     </div>
     <h2>Define Criteria Weights for TOPSIS</h2>
     <form method="POST">
+        <div class="mb-3">
+            <input type="checkbox" id="use-entropy" name="use_entropy" onclick="toggleInputs(this)">
+            <label for="use-entropy">Use Entropy for Automatic Weight Calculation</label>
+        </div>
         {% for criteria in criterias %}
         <div class="row align-items-center mb-3">
-            <div class="col-md-4 distinct-label">
-                <label for="{{ criteria }}" class="form-label">{{ criteria.replace('_', ' ').capitalize() }}</label>
+            <div class="col-md-3">
+                <label for="{{ criteria }}">{{ criteria.replace('_', ' ').capitalize() }}</label>
             </div>
-            <div class="col-md-4">
-                <input type="number" step="any" 
-                name="{{ criteria }}" id="{{ criteria }}" class="form-control weight-input"
+            <div class="col-md-3">
+                <input type="number" step="any" class="form-control weight-input" name="{{ criteria }}" id="{{ criteria }}"
                     value="{{ weights.get(criteria, '') }}" required>
             </div>
-            <div class="col-md-4">
-                <label id="{{ criteria }}-percent" class="form-label">0.00%</label>
+            <div class="col-md-3">
+                <label id="{{ criteria }}-percent">0.00%</label>
+            </div>
+            <div class="col-md-3">
+                <label id="{{ criteria }}-average">Avg: 0.00</label>
             </div>
         </div>
         {% endfor %}
-        <div class="row align-items-center mb-3">
-            <div class="col-md-4 distinct-label"></div>
-            <div class="col-md-4">
-                <p class="total-weight">Total Weight: <span id="current-total">0.00</span></p>
-            </div>
+        <div class="mb-3">
+            <label>Total Weight:</label> <span id="current-total">0.00</span>
         </div>
-        <div class="row align-items-center mb-3">
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary">Normalize and Next Step</button>
-            </div>
-        </div>
+        <button type="submit" class="btn btn-primary">Calculate TOPSIS</button>
     </form>
 </div>
 
 <script>
+    function toggleInputs(checkbox) {
+        const inputs = document.querySelectorAll('.weight-input');
+        inputs.forEach(input => input.disabled = checkbox.checked);
+    }
+
     // Function to update total weight and percentages dynamically
     function updateWeights() {
         const weightInputs = document.querySelectorAll('.weight-input');

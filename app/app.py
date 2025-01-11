@@ -1,26 +1,39 @@
 # from flask import Flask, jsonify, render_template
-from flask import Flask, render_template, make_response,  g, jsonify, request, redirect, url_for,  session
+from flask import Flask, render_template, make_response,  g, jsonify, request, redirect, url_for,  session, request
 import json
+import pandas as pd
 from scrape500.scrape500 import scrape_fortune500
 from db.database import init_db, save_results, get_all_companies, get_all_results_with_methods, save_companies_to_db, get_results, get_all_companies_for_group
 import numpy as np
-from constants import METHODS, FORTUNE_URL, SECRET_KEY
+from constants import METHODS, FORTUNE_URL, SECRET_KEY, sidebar_links
 from methods.ahp.ahp import  calculate_ahp_advance_with_method_id
 # from methods.promethee.promethee import  classify_and_normalize, calculate_difference_matrix
 from methods.promethee.promethee import  build_decision_matrix,  normalize_decision_matrix,  calculate_difference_matrix, calculate_preference_functions,  promethee_aggregate_preferences, classify_and_normalize  
 # calculate_difference_matrixB
 
-from methods.topsis.topsis import topsis_normalize_decision_matrix
-from methods.utils import normalize_scores, calculate_all_ranks, normalize_weights, format_data_numbers, round_mcda_method_scores, round_mcda_scores
+from methods.topsis.topsis import topsis_calculate, topsis_normalize_decision_matrix, normalize_weights, calculate_entropy_weights, calculate_topsis_scores, topsis_normalize_decision_matrix
+from methods.utils import normalize_results_scores, normalize_scores, calculate_all_ranks, normalize_weights, format_data_numbers, round_mcda_method_scores, round_mcda_scores
  #,  # Posodobljen uvoz
 import locale
+
 
 locale.setlocale(locale.LC_ALL, 'sl_SI.UTF-8')
 
 app = Flask(__name__)
 # app = Flask(__name__, template_folder='app/templates')
-app.secret_key = 'SECRET_KEY'
+app.secret_key = SECRET_KEY
 
+
+
+
+
+@app.context_processor
+def inject_current_path():
+    return {'current_path': request.path}
+
+@app.context_processor
+def inject_sidebar_links():
+    return {'sidebar_links': sidebar_links, 'current_path': request.path}
 
 # Inicializacija baze
 @app.before_request
@@ -55,40 +68,101 @@ def debug_home():
 
 @app.route('/topsis', methods=['GET', 'POST'])
 def topsis_main():
+    group = request.args.get('group', 'A')
     criterias = ['revenue', 'revenue_percent_change', 'profit', 
                  'profits_percent_change', 'employees', 'assets', 
                  'change_in_rank']
+
+    decision_matrix = pd.DataFrame([
+        {'revenue': 500, 'revenue_percent_change': 10, 'profit': 50, 'profits_percent_change': 5, 'employees': 1000, 'assets': 2000, 'change_in_rank': -2},
+        {'revenue': 700, 'revenue_percent_change': 12, 'profit': 80, 'profits_percent_change': 6, 'employees': 1500, 'assets': 3000, 'change_in_rank': 1},
+        {'revenue': 600, 'revenue_percent_change': 11, 'profit': 60, 'profits_percent_change': 4, 'employees': 1200, 'assets': 2500, 'change_in_rank': 0}
+    ])  # Replace with actual data
+    
+    
+
     
     if request.method == 'POST':
- # Read weights from the POST request
-        weights = {criteria: float(request.form.get(criteria, 0)) for criteria in criterias}
-        total_weight = sum(weights.values())
+        # Read weights from the POST request
+        use_entropy = request.form.get('use_entropy', False)
 
-        # Ensure at least 3 weights are non-zero
-        non_zero_weights = [w for w in weights.values() if w > 0]
-        if len(non_zero_weights) < 3:
-            return "At least 3 criteria must have weights greater than 0.", 400
+        companies = get_all_companies_for_group(group)
+        if not companies:
+            return "No company data found for the selected group.", 400
+        
+        # Pretvori podatke v seznam slovarjev
+        companies = [dict(row) for row in companies]
+        print("DEBUG: Converted Companies data:", companies)  # Debugging output
+        decision_matrix = pd.DataFrame(companies)
+        print("DEBUG: Decision matrix columns:", decision_matrix.columns)
+        # print("DEBUG: Companies data:", companies)
 
+        
+
+        
+        # Preveri manjkajoče stolpce
+        missing_columns = [col for col in criterias if col not in decision_matrix.columns]
+        if missing_columns:
+            return f"Missing columns in decision matrix: {', '.join(missing_columns)}", 400
+        missing_columns = [col for col in criterias if col not in decision_matrix.columns]
+        if missing_columns:
+            print("DEBUG: Missing columns in decision matrix:", missing_columns)
+
+        if use_entropy:
+            # Calculate weights using entropy
+            weights = calculate_entropy_weights(decision_matrix)
+            session['topsis-weights'] = weights
+        else:
+            # Read weights from form input
+            weights = {criteria: float(request.form.get(criteria, 0)) for criteria in criterias}
+            session['topsis-weights'] = weights
+        
+
+        #weights = {criteria: float(request.form.get(criteria, 0)) for criteria in criterias}
+        #total_weight = sum(weights.values())
+
+        # Check if there are at least 3 non-zero weights
+        #non_zero_weights = [w for w in weights.values() if w > 0]
+        #if len(non_zero_weights) < 3:
+        #    return "At least 3 criteria must have weights greater than 0.", 400
         # Normalize weights
-        normalized_weights = {k: v / total_weight for k, v in weights.items() if total_weight > 0}
+        normalized_weights = normalize_weights(weights)
+        #scores = topsis_calculate(decision_matrix, weights)
+        scores = topsis_calculate(decision_matrix, weights, use_entropy=use_entropy)
 
-        # Store normalized weights in session
-        session['topsis-weights'] = normalized_weights
 
+        # Dodaj manjkajoče podatke (company_id, name) v rezultate
+        decision_matrix['score'] = scores
+        results = decision_matrix[['id', 'name', 'score']].rename(columns={'id': 'company_id'}).to_dict(orient='records')
+
+        
         # return redirect(url_for('topsis_main'))  # Redirect to prevent form resubmission
         #return render_template('methods/topsis.html')
-        return render_template('methods/topsis-form.html')
+        # Calculate TOPSIS scores
+        #criteria_types = [1, 1, 1, 1, 1, 1, -1]  # Adjust based on your criteria
+        #scores = calculate_topsis_scores(decision_matrix, normalized_weights, criteria_types)
+
+        # Prepare results
+        # results = decision_matrix.assign(score=scores).sort_values(by='score', ascending=False)
+        
+        #from pprint import pprint
+        #print("Topsis Debug: results (head):")
+        #pprint(results.head())  # Če je DataFrame, prikaže prvih nekaj vrstic
+        #print("Topsis Debug: results (dtypes):")
+        #pprint(results.dtypes)  # Če je DataFrame, prikaže tipe podatko
+        #print("Topsis Debug: First row:")
+        #pprint(results.iloc[0].to_dict()) 
+        save_results(2, results)
+        return redirect(url_for('results', method_id=2, group=group))
+        # return render_template('methods/topsis-form.html')
     
 
      # Handle GET request: Load saved weights from session or set defaults
     weights = session.get('topsis-weights', {criteria: 0.0 for criteria in criterias})
-   
-    #return render_template('methods/topsis-form.html', 
-    #                       criterias=criterias, 
-    #                       weights=normalized_weights)
     return render_template('methods/topsis-form-weights.html', 
                            criterias=criterias, 
                            weights=weights)
+
 
 
 
@@ -730,8 +804,16 @@ def results(method_id):
 
     r= [None, 4, 2,5, 0]
     results = round_mcda_method_scores(results, r[method_id])
+
+    if not results:  # Check if results are empty
+        error_text = f"No results found for method {METHODS.get(method_id, 'Unknown Method')}."
+        return render_template('error.html', error_text=error_text)
     #methods = ["AHP", "PROMETHEE", "WSM"]
     #companies = round_mcda_scores(companies, methods, rounding_array)
+        # Normalize scores for graph
+    results = normalize_results_scores(results)
+
+    # return render_template('results.html', method_name=method_name, results=results, group=group)
     return render_template('results.html', method_name=method_name, results=results, group=group)
 
 
@@ -763,7 +845,7 @@ def compare_results():
     # Prepare companies for rendering
     companies = list(comparison_data.values())
     rounding_array = [3,  4, 1] 
-    methods = ["AHP", "PROMETHEE", "WSM"]
+    methods = ["AHP", "Topsis", "PROMETHEE", "WSM"]
     companies = round_mcda_scores(companies, methods, rounding_array)
     
     # Calculate ranks

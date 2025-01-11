@@ -239,3 +239,10 @@ nav h3{
         grid-template-columns: repeat(5, 1fr); /* Prikaže le 5 stolpcev */
     }
 }
+
+.nav-link.active {
+    font-weight: bold;
+    color: #007bff; /* modra */
+    background-color: #575757; /* svetlo siva */
+
+}
