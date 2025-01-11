@@ -1,66 +1,90 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1 class="mb-4 text-center">Weighted Sum Model (WSM) - Group {{ group }}</h1>
-        {% if error %}
-            <p style="color: red;">{{ error }}</p>
-        {% endif %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Weighted Sum Model (WSM) - Group {{ group }}</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
 
     <form method="post">
         <label for="num_criteria">Number of Criteria:</label>
         <input type="number" id="num_criteria" name="num_criteria" value="7" readonly><br><br>
 
-    
         <h3>Criteria Weights</h3>
-        <p>Enter weights for each criterion (total must equal 1):</p>
+        <p>Enter weights for each criterion (at least 3 must be greater than 0):</p>
         {% for key, display_name in criteria_display.items() %}
         <div class="row align-items-center mb-3">
-            <div class="col-md-5 distinct-label">
+            <div class="col-md-4 distinct-label">
                 <label for="{{ key }}" class="form-label">{{ display_name }}</label>
             </div>
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <input 
                     type="number" 
                     step="0.01" 
                     class="form-control weight-input" 
                     name="weights" 
                     id="{{ key }}" 
+                    value="{{ saved_weights[loop.index0] if saved_weights else 0.0 }}" 
                     required 
-                    onchange="validateWeights()">
+                    onchange="updateWeights()">
+            </div>
+            <div class="col-md-4">
+                <label id="{{ key }}-percent" class="form-label">0.00%</label>
             </div>
         </div>
         {% endfor %}
 
         <div class="row align-items-center mb-3">
-            <div class="col-md-5 distinct-label">
-                
-            </div>
-            <div class="col-md-5">
-                <p class="total-weight">Total Weight:<span id="total-weight">0.00</span></p>
+            <div class="col-md-4 distinct-label"></div>
+            <div class="col-md-4">
+                <p class="total-weight">Total Weight: <span id="total-weight">0.00</span></p>
+                <p class="non-zero-weight">Non-Zero Weights: <span id="non-zero-count">0</span></p>
             </div>
         </div>
 
         <div class="row align-items-center mb-3">
-            <div class="col-md-5"><button type="submit" id="submit-button" class="btn btn-primary" disabled>Submit</button></div>
-            <div class="col-md-5">
-                
-            </div>
+            <div class="col-md-4"><button type="submit" id="submit-button" class="btn btn-primary" disabled>Submit</button></div>
+            <div class="col-md-4"></div>
         </div>
-        </form>
-    </div>
-    <script>
-        // Function to validate weights and enable/disable the submit button
-        function validateWeights() {
-            let weightInputs = document.querySelectorAll('.weight-input');
-            let totalWeight = 0;
+    </form>
+</div>
 
-            weightInputs.forEach(input => {
-                totalWeight += parseFloat(input.value) || 0;
-            });
+<script>
+    // Function to update total weight, non-zero count, and percentage labels
+    function updateWeights() {
+        let weightInputs = document.querySelectorAll('.weight-input');
+        let totalWeight = 0;
+        let nonZeroCount = 0;
 
-            document.getElementById('total-weight').textContent = totalWeight.toFixed(2);
-            document.getElementById('submit-button').disabled = (totalWeight.toFixed(2) != 1);
-        }
-    </script>
+        // Calculate total weight and count non-zero weights
+        weightInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            totalWeight += value;
+            if (value > 0) {
+                nonZeroCount++;
+            }
+        });
+
+        // Update total weight and non-zero count
+        document.getElementById('total-weight').textContent = totalWeight.toFixed(2);
+        document.getElementById('non-zero-count').textContent = nonZeroCount;
+
+        // Update percentage labels
+        weightInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            const percent = totalWeight > 0 ? (value / totalWeight) * 100 : 0;
+            const percentLabel = document.getElementById(`${input.id}-percent`);
+            percentLabel.textContent = `${percent.toFixed(2)}%`;
+        });
+
+        // Enable or disable the submit button based on non-zero weights
+        document.getElementById('submit-button').disabled = nonZeroCount < 3;
+    }
+
+    // Initialize weights on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateWeights();
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">PROMETHEE Decision Support Tool</h1>
+        <div class="form-step">
+            <ul>
+                <li><a href="/promethee?group={{ group }}">Step 1</a></a></li>
+                <li class="step-focus"><a href="/promethee/parameters?group={{ group }}">Step 2</a></li>
+                <li><a href="/promethee/decision-matrix?group={{ group }}">Step 3</a></a></li>
+            </ul>
+            </ul>
+        </div>
+        <h3 class="mb-4 text-left">Step 2. PROMETHEE Parameter Settings</h3>
+
+        <form method="POST" action="/promethee/parameters?group={{ group }}">
+            <!-- Hidden input for group -->
+            <input type="hidden" name="group" value="{{ group }}">
+
+            <!-- Dynamic attribute settings -->
+            {% for attribute, settings in attributes.items() %}
+            <div class="row align-items-center mb-3">
+                <!-- Attribute name -->
+                <div class="col-md-4 distinct-label">
+                    <label class="form-label" for="{{ attribute }}">{{ attribute.replace('_', ' ').title() }}</label>
+                </div>
+                <!-- Weight input -->
+                <div class="col-md-4">
+                    <input type="number" step="0.01" class="form-control" name="{{ attribute }}_weight" id="{{ attribute }}_weight" value="{{ settings.weight }}">
+                </div>
+                <!-- Preference function select -->
+                <div class="col-md-4">
+                    <select class="form-select" name="{{ attribute }}_preference" id="{{ attribute }}_preference">
+                        <option value="linear" {% if settings.preference == 'linear' %}selected{% endif %}>Linear</option>
+                        <option value="threshold" {% if settings.preference == 'threshold' %}selected{% endif %}>Threshold</option>
+                        <option value="gaussian" {% if settings.preference == 'gaussian' %}selected{% endif %}>Gaussian</option>
+                    </select>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Submit button -->
+            <div class=""">
+                <button type="submit" class="btn btn-primary">Submit Parameters</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

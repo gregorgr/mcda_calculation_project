@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Results for {{ method_name }} method and group {{group}}</h2>
+    <div class="table-header d-flex border">
+        <!-- Sortable column for rank -->
+        <div class="col-md-2 p-2 sortable" onclick="sortTable('rank')">
+            Rank
+        </div>
+        <!-- Sortable column for company names -->
+        <div class="col-md-6 p-2 sortable" onclick="sortTable('company_name')">
+            Company Name
+        </div>
+        <!-- Sortable column for scores -->
+        <div class="col-md-4 p-2 sortable" onclick="sortTable('score')">
+            Score
+        </div>
+    </div>
+
+    <div id="results-container" class="border">
+        {% for result in results %}
+        <div class="d-flex result-row align-items-center border-bottom"
+             data-rank="{{ loop.index }}"
+             data-company_name="{{ result['company_name'] }}"
+             data-score="{{ result['score'] }}">
+            <!-- Rank Column -->
+            <div class="col-md-2 p-2 text-center">
+                {{ loop.index }}
+            </div>
+            <!-- Company Name Column -->
+            <div class="col-md-6 p-2">
+                {{ result['company_name'] }}
+            </div>
+            <!-- Score Column -->
+            <div class="col-md-4 p-2 text-center">
+                {{ result['formatted_score'] }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+

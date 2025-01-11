@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Comparison of Results for group {{group}}</h1>
+    <p>This table compares the scores of companies across all methods.</p>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Company</th>
+                {% for method in methods %}
+                    <th>{{ method }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for company in companies %}
+            <tr>
+                <td>{{ company.name }}</td>
+                {% for method in methods %}
+                    <td>{{ company.scores.get(method, 'N/A') }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

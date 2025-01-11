@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Select Companies for Analysis</h2>
+<form method="POST">
+    <div class="form-group mb-3">
+        <label for="group">Select Group:</label>
+        <form method="POST">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupA" value="A" 
+                {% if group|lower == 'a' or (group|lower != 'b' and group|lower != 'c') %}checked{% endif %}>
+                <label class="form-check-label" for="groupA">Group A (Rank 1–20)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupB" value="B" 
+                       {% if group == 'B' %}checked{% endif %}>
+                <label class="form-check-label" for="groupB">Group B (Rank 21–40)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="group" id="groupC" value="C" 
+                       {% if group == 'C' %}checked{% endif %}>
+                <label class="form-check-label" for="groupC">Group C (Rank 41–60)</label>
+            </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Select</button>
+</form>
+<br /><br />
+{% if companies %}
+<h3>Selected Companies (Group {{ group }})</h3>
+<div class="table-container table-selection">
+    <!-- Header -->
+    <div class="table-header">
+        <div class="col-rank" data-sort-order="asc">Rank</div>
+        <div class="col-name" data-sort-order="asc">Name</div>
+        <div class="col-currency" data-sort-order="asc">Revenue [$]</div>
+        <div data-sort-order="asc">Revenue Change [%]</div>
+        <div class="col-currency" data-sort-order="asc">Profit [$]</div>
+        <div data-sort-order="asc">Profit Change [%]</div>
+        <div data-sort-order="asc">Employees</div>
+        <div class="col-no" data-sort-order="asc">Change in Rank</div>
+        <div class="col-currency" data-sort-order="asc">Assets [$]</div>
+        <div class="table-col-last" data-sort-order="asc">Years on List</div>
+    </div>
+    
+    <!-- Content -->
+    <div class="table-body">
+        {% for company in companies %}
+        <div class="table-row">
+            <div class="col-rank">   
+                {{ company.rank }}
+            </div>
+            <div class="col-name"><a href="/companies/{{ company.id }}" alt="Details" target="_blank" class="btn btn-primary btn-sm"><b>{{ company.name }}</b></a></div>
+            <div class="col-currency">{{ company.formatted_revenue }}</div>
+            <div>{{ company.formatted_revenue_change }}%</div>
+            <div class="col-currency">{{ company.formatted_profit }}</div>
+            <div>{{ company.formatted_profit_change}}%</div>
+            <div>{{ "{:,.0f}".format(company.employees) }}</div>     
+            <div class="col-no">{{ company.change_in_rank }}</div>
+            <div class="col-currency">${{ "{:,.2f}".format(company.assets) }}</div>
+            <div class="table-col-last">{{ company.years_on_list }}</div> <!-- Novo -->
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

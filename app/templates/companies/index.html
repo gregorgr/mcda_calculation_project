@@ -4,6 +4,7 @@
 <h2 class="text-center mb-4">Fortune 500 Companies</h2>
 <input type="text" id="search" class="form-control mb-3" placeholder="Search companies..." onkeyup="filterTable()">
 <script>
+    /*
     function filterTable() {
         const input = document.getElementById("search").value.toUpperCase();
         const rows = document.querySelectorAll(".table-row");
@@ -12,31 +13,53 @@
             row.style.display = text.includes(input) ? "" : "none";
         });
     }
+    */
 </script>
 <div class="table-container">
     <!-- Header -->
-    <div class="table-header">
-        <div class="col-rank" data-sort-order="asc">Rank</div>
-        <div class="col-name" data-sort-order="asc">Name</div>
-        <div class="col-currency" data-sort-order="asc">Revenue [$]</div>
-        <div data-sort-order="asc">Revenue Change [%]</div>
-        <div class="col-currency" data-sort-order="asc">Profit [$]</div>
-        <div data-sort-order="asc">Profit Change [%]</div>
-        <div data-sort-order="asc">Employees</div>
-        <div class="col-no" data-sort-order="asc">Change in Rank</div>
-        <div class="col-currency" data-sort-order="asc">Assets [$]</div>
-        <div class="table-col-last" data-sort-order="asc">Years on List</div>
+    <div class="table-header grid-cols">
+        <div class="col-rank"  
+            data-column="rank" onclick="sortTable('rank', 'results-container')" data-sort-order="asc" )">Rank</div>
+        <div class="col-name" 
+        data-column="name" onclick="sortTable('company_name', 'results-container')" data-sort-order="asc">Name</div>
+        <div class="col-currency" 
+            data-column="revenue" onclick="sortTable('revenue', 'results-container')" data-sort-order="asc">Revenue [$]</div>
+        <div data-column="revenue_change"  
+            onclick="sortTable('revenue_change', 'results-container')" data-sort-order="asc">Revenue<br>Change [%]</div>
+        <div class="col-currency" 
+            data-column="profit" onclick="sortTable('profit', 'results-container')" data-sort-order="asc">Profit [$]</div>
+        <div 
+            data-column="profit_change" onclick="sortTable('profit_change', 'results-container')" data-sort-order="asc">Profit<br>Change [%]</div>
+        <div 
+            data-column="employees" onclick="sortTable('employees', 'results-container')" data-sort-order="asc">Employees</div>
+        <div class="col-no" 
+            data-column="change_in_rank" onclick="sortTable('change_in_rank', 'results-container')" data-sort-order="asc">Change<br>in Rank</div>
+        <div class="col-currency" 
+            data-column="assets" onclick="sortTable('assets', 'results-container')" data-sort-order="asc">Assets [$]</div>
+        <div class="table-col-last" 
+            data-column="years_on_list" onclick="sortTable('years_on_list', 'results-container')" data-sort-order="asc">Years<br>on List</div>
     </div>
     <!-- Content -->
-    <div class="table-body">
+    <div  id="results-container"  class="table-body">
         {% for company in companies %}
-        <div class="table-row">
+        <div class="table-row grid-cols"
+        data-rank="{{ company.rank }}"
+        data-company_name="{{ company.name }}"
+        data-revenue="{{ company.revenue }}"
+        data-revenue_change="{{ company.revenue_percent_change }}"
+        data-profit="{{ company.profit }}"
+        data-profit_change="{{ company.profits_percent_change }}"
+        data-employees="{{ company.employees }}"
+        data-change_in_rank="{{ company.change_in_rank }}"
+        data-assets="{{ company.assets }}"
+        data-years_on_list="{{ company.years_on_list }}"
+        >
             <div class="col-rank">   
                 {{ company.rank }}
             </div>
             <div class="col-name"><a href="/companies/{{ company.id }}" alt="Details" target="_blank" class="btn btn-primary btn-sm"><b>{{ company.name }}</b></a></div>
             <div class="col-currency">{{ company.formatted_revenue }}</div>
-            <div>{{ company.formatted_revenue_change }}%</div>
+            <div class="col-center">{{ company.formatted_revenue_change }}%</div>
             <div class="col-currency">{{ company.formatted_profit }}</div>
             <div>{{ company.formatted_profit_change}}%</div>
             <div>{{ "{:,.0f}".format(company.employees) }}</div>
@@ -44,7 +67,7 @@
             
             <div class="col-no">{{ company.change_in_rank }}</div>
             <div class="col-currency">${{ "{:,.2f}".format(company.assets) }}</div>
-            <div class="col-no">{{ company.years_on_list }}</div>
+            <div class="col-center">{{ company.years_on_list }}</div>
          
         </div>
         {% endfor %}

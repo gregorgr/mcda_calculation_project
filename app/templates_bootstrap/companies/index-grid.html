@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-center mb-4">Fortune 500 Companies</h2>
+
+<input type="text" id="search" class="form-control mb-3" placeholder="Search companies..." onkeyup="filterCompanies()">
+<script>
+    function filterCompanies() {
+        const input = document.getElementById("search").value.toUpperCase();
+        const cards = document.querySelectorAll(".card");
+        cards.forEach(card => {
+            const text = card.innerText.toUpperCase();
+            card.style.display = text.includes(input) ? "" : "none";
+        });
+    }
+</script>
+
+<div class="d-flex flex-wrap justify-content-center">
+    {% for company in companies %}
+    <div class="card m-3 p-3" style="width: 18rem;">
+        <h5 class="card-title">{{ company.rank }}: {{ company.name }}</h5>
+        <p class="card-text"><strong>Revenue:</strong> ${{ "{:,.2f}".format(company.revenue) }}</p>
+        <p class="card-text"><strong>Profit:</strong> ${{ "{:,.2f}".format(company.profit) }}</p>
+        <p class="card-text"><strong>Employees:</strong> {{ "{:,.0f}".format(company.employees) }}</p>
+        <p class="card-text"><strong>Change in Rank:</strong> {{ company.change_in_rank }}</p>
+        <p class="card-text"><strong>Years on List:</strong> {{ company.years_on_list }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+

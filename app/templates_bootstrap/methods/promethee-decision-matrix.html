@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">PROMETHEE Decision Support Tool</h1>
+    <div class="form-step">
+        <ul>
+            <li><a href="/promethee?group={{ group }}">Step 1</a></a></li>
+            <li ><a href="/promethee/parameters?group={{ group }}">Step 2</a></li>
+            <li class="step-focus"><a href="/promethee/decision-matrix?group={{ group }}">Step 3</a></a></li>
+        </ul>
+    </div>
+    <h2 class="mb-4 text-left">Decision matrix for group {{ group }}</h2>
+
+    <form method="POST" action="/promethee/decision-matrix?group={{ group }}">
+        <h3>Enter Decision Matrix</h3>
+        {% for i in range(num_alternatives) %}
+        <h5>Alternative {{ i + 1 }}</h5>
+        <div class="row">
+            {% for j in range(attributes|length) %}
+            <div class="col">
+                <label for="alt_{{ i+1 }}_{{ attributes[j] }}">{{ attributes[j].replace('_', ' ').title() }}</label>
+                <input type="number" step="0.01" class="form-control" 
+                       name="alt_{{ i+1 }}_{{ attributes[j] }}" 
+                       id="alt_{{ i+1 }}_{{ attributes[j] }}" 
+                       value="{{ decision_matrix[i][j] if decision_matrix|length > i and decision_matrix[i]|length > j else '' }}">
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div> 
+  
+{% endblock %}

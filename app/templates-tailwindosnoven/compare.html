@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+
+</script>
+<div class="container">
+    <h1 class="mt-4">Comparison of Results (Group {{ group }})</h1>
+    <p>This table compares the scores of companies across all methods.</p>
+
+
+    <div class="table-header d-flex border">
+        <!-- Sortable column for company names -->
+        <div class="col-md-4 p-2 sortable" onclick="sortTable('company_name', 'companies-container')">
+            Company Name
+        </div>
+        {% for method in methods %}
+            <div class="col-md-2 p-2 text-center sortable method-name" onclick="sortTable('data-{{ loop.index0 }}', 'companies-container')">
+                {{ method }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="companies-container" class="border">
+    {% for company in companies %}
+    <div class="d-flex company-row align-items-center border-bottom result-row"
+        data-company_name="{{ company.name }}"
+         {% for method in methods %}
+             data-{{ loop.index0 }}="{{ company.scores_original.get(method, 0) }}"
+         {% endfor %}>
+        <div class="col-md-4 p-2 sortable" onclick="sortTable('name')">
+            {{ company.name }}
+        </div>
+        {% for method in methods %}
+            <div class="col-md-2 p-2 text-center">
+                {{ company.scores.get(method, '') }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

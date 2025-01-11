@@ -1,5 +1,6 @@
 # from flask import Flask, jsonify, render_template
-from flask import Flask, g, jsonify, request, redirect, url_for, render_template, session
+from flask import Flask, render_template, make_response,  g, jsonify, request, redirect, url_for,  session
+import json
 from scrape500.scrape500 import scrape_fortune500
 from db.database import init_db, save_results, get_all_companies, get_all_results_with_methods, save_companies_to_db, get_results, get_all_companies_for_group
 import numpy as np
@@ -14,7 +15,9 @@ import locale
 locale.setlocale(locale.LC_ALL, 'sl_SI.UTF-8')
 
 app = Flask(__name__)
+# app = Flask(__name__, template_folder='app/templates')
 app.secret_key = 'SECRET_KEY'
+
 
 # Inicializacija baze
 @app.before_request
@@ -35,6 +38,15 @@ def before_request():
 def home():
     return render_template('home.html')
 
+
+@app.route('/debug')
+def debug_home():
+    import os
+    print("Template Folder:", app.template_folder)
+    #templates_path = app.template_folder
+    #templates = os.listdir(templates_path)
+    #return f"Templates found: {templates}"
+    return render_template('home.html')
 
 
 
@@ -83,22 +95,6 @@ def topsis_normalize():
     return {"normalized_matrix": normalized_matrix}
 
 
-@app.route('/wsm1', methods=['GET', 'POST'])
-def wsm_main1():
-
-    # prednstavljene vrednosti za polnjenje 
-
-    if request.method == 'POST':
-        group = request.args.get('group', 'A')  # Default group "A" if not provided
-
-        # če je kalkulacija mogoča, potem vstavi izračune tukaj
-
-        # sicer preusmeri na naslednjo formo
-        return redirect('/wsm/calculate?group=' + group)
-
-
-
-    return render_template('methods/wsm-input.html')
 
 
 @app.route('/wsm', methods=['GET', 'POST'])
@@ -132,26 +128,41 @@ def wsm_main():
     if request.method == 'POST':
         # Pridobivanje podatkov iz obrazca
         try:
-            num_criteria = int(request.form.get('num_criteria'))
+            #num_criteria = int(request.form.get('num_criteria'))
             weights = list(map(float, request.form.getlist('weights')))
-            criteria_values = [
-                list(map(float, request.form.getlist(f'criteria_{i}')))
-                for i in range(len(companies))
-            ]
+            total_weight = sum(weights)
 
-            # Preverjanje, če so pravilne uteži
-            if sum(weights) != 1.0:
-                raise ValueError("Uteži morajo biti normalizirane in njihova vsota mora biti 1.")
+            # Validate at least 3 non-zero weights
+            non_zero_weights = [w for w in weights if w > 0]
+            if len(non_zero_weights) < 3:
+                raise ValueError("At least 3 criteria must have weights greater than 0.")
 
+            if total_weight == 0:
+                raise ValueError("Total weight cannot be zero.")
+            
+             # Normalize weights
+            normalized_weights = [w / total_weight for w in weights]
+
+
+            #criteria_values = [
+            #    list(map(float, request.form.getlist(f'criteria_{i}')))
+            #    for i in range(len(companies))
+            #]
+
+              # Calculate scores
             scores = []
             for company in companies:
-                # WSM score is the weighted sum of the criteria
-                score = sum(company[criterion] * weight for criterion, weight in zip(criterias, weights))
+                score = sum(
+                    company[criterion] * weight
+                    for criterion, weight in zip(criterias, normalized_weights)
+                    if weight > 0
+                )
                 scores.append(score)
 
-            # Prepare results in the correct format
-            results = [{'company_id': company['id'], 'name': company['name'], 'score': scores[i]} for i, company in enumerate(companies)] 
+            results = [{'company_id': company['id'], 'name': company['name'], 'score': scores[i]} for i, company in enumerate(companies)]
 
+            # Save results
+            save_results(4, results) # method_id = 4 za WSM
             #from pprint import pprint
             #print("WSM Debug: results:")
             #pprint(results)
@@ -159,8 +170,10 @@ def wsm_main():
             #for row in results:
             #    print(row)  # Pretvori SQLite Row v navaden slovar
             #    print(dict(row))  # Pretvori SQLite Row v navaden slovar
-            # Shranjevanje rezultatov
-            save_results(4, results)  # method_id = 4 za WSM
+
+            # Save weights to cookies
+            response = make_response(redirect(url_for('results', method_id=4, group=group)))
+            session['wsm_weights'] = json.dumps(weights)
 
             # return render_template('methods/wsm-results.html', results=results, group=group)
             return redirect(url_for('results', method_id=4, group=group))
@@ -168,9 +181,19 @@ def wsm_main():
         except ValueError as e:
             return render_template('methods/wsm-input.html', group=group, companies=companies, error=str(e))
 
+    # Handle GET request
+        
+    #session['promethee_preference_matrix'] = preference_matrix.tolist()
+    saved_weights = session.get('wsm_weights')
+    print (saved_weights)
 
-    # koda za GET metodo
-    return render_template('methods/wsm-input.html', group=group, criteria_display=criteria_display)
+    if saved_weights:
+        saved_weights = json.loads(saved_weights)
+    else:
+        saved_weights = [0.0] * len(criterias)
+
+    return render_template('methods/wsm-input.html', group=group, criteria_display=criteria_display, saved_weights=saved_weights)
+
 
 
 
@@ -476,6 +499,7 @@ def preference_functions():
                     preference_matrix[i, j, attr_index] = max(0, diff)
 
     # Save preference matrix in session
+    
     session['promethee_preference_matrix'] = preference_matrix.tolist()
     print("Preference Matrix:\n", preference_matrix)
 
@@ -626,10 +650,16 @@ def select_companies():
         else:
             companies = []
         # return redirect(url_for('select_companies', group=group))
-        companies = format_data_numbers(companies)
-        return render_template('select_companies.html', companies=companies, group=group)
+        # companies = format_data_numbers(companies)
+        # from pprint import pprint
+
+        # print("Debug: select_companies results:")
+        # pprint(companies[0])
+
+
+        return render_template('companies/select_companies.html', companies=companies, group=group)
     
-    return render_template('select_companies.html')
+    return render_template('companies/select_companies.html')
 
 
 
