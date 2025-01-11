@@ -19,30 +19,30 @@
     <!-- Header -->
     <div class="table-header grid-cols">
         <div class="col-rank"  
-            data-column="rank" onclick="sortTable('rank', 'results-container')" data-sort-order="asc" )">Rank</div>
+            data-column="rank" onclick="sortTable('rank', 'table-body')" data-sort-order="asc" )">Rank</div>
         <div class="col-name" 
-        data-column="name" onclick="sortTable('company_name', 'results-container')" data-sort-order="asc">Name</div>
+        data-column="name" onclick="sortTable('company_name', 'table-body')" data-sort-order="asc">Name</div>
         <div class="col-currency" 
-            data-column="revenue" onclick="sortTable('revenue', 'results-container')" data-sort-order="asc">Revenue [$]</div>
+            data-column="revenue" onclick="sortTable('revenue', 'table-body')" data-sort-order="asc">Revenue [$]</div>
         <div data-column="revenue_change"  
-            onclick="sortTable('revenue_change', 'results-container')" data-sort-order="asc">Revenue<br>Change [%]</div>
+            onclick="sortTable('revenue_change', 'table-body')" data-sort-order="asc">Revenue<br>Change [%]</div>
         <div class="col-currency" 
-            data-column="profit" onclick="sortTable('profit', 'results-container')" data-sort-order="asc">Profit [$]</div>
+            data-column="profit" onclick="sortTable('profit', 'table-body')" data-sort-order="asc">Profit [$]</div>
         <div 
-            data-column="profit_change" onclick="sortTable('profit_change', 'results-container')" data-sort-order="asc">Profit<br>Change [%]</div>
+            data-column="profit_change" onclick="sortTable('profit_change', 'table-body')" data-sort-order="asc">Profit<br>Change [%]</div>
         <div 
-            data-column="employees" onclick="sortTable('employees', 'results-container')" data-sort-order="asc">Employees</div>
+            data-column="employees" onclick="sortTable('employees', 'table-body')" data-sort-order="asc">Employees</div>
         <div class="col-no" 
-            data-column="change_in_rank" onclick="sortTable('change_in_rank', 'results-container')" data-sort-order="asc">Change<br>in Rank</div>
+            data-column="change_in_rank" onclick="sortTable('change_in_rank', 'table-body')" data-sort-order="asc">Change<br>in Rank</div>
         <div class="col-currency" 
-            data-column="assets" onclick="sortTable('assets', 'results-container')" data-sort-order="asc">Assets [$]</div>
+            data-column="assets" onclick="sortTable('assets', 'table-body')" data-sort-order="asc">Assets [$]</div>
         <div class="table-col-last" 
-            data-column="years_on_list" onclick="sortTable('years_on_list', 'results-container')" data-sort-order="asc">Years<br>on List</div>
+            data-column="years_on_list" onclick="sortTable('years_on_list', 'table-body')" data-sort-order="asc">Years<br>on List</div>
     </div>
     <!-- Content -->
-    <div  id="results-container"  class="table-body">
+    <div  id="table-body"  class="table-body">
         {% for company in companies %}
-        <div class="table-row grid-cols"
+        <div class="table-row grid-cols result-row"
         data-rank="{{ company.rank }}"
         data-company_name="{{ company.name }}"
         data-revenue="{{ company.revenue }}"

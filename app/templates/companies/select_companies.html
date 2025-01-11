@@ -56,7 +56,8 @@
     <!-- Content  data-profit_change -->
     <div id="table-body"  class="table-body">
         {% for company in companies %}
-        <div  class="table-row grid-cols result-row"  data-rank="{{ company.rank }}"
+        <div  class="table-row grid-cols result-row" 
+                data-rank="{{ company.rank }}"
                 data-company_name="{{ company.name }}"
                 data-revenue="{{ company.revenue }}"
                 data-revenue_change="{{ company.revenue_percent_change }}"

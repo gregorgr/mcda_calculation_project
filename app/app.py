@@ -590,15 +590,15 @@ def select_companies():
             companies = []
         # return redirect(url_for('select_companies', group=group))
         # companies = format_data_numbers(companies)
-        # from pprint import pprint
+        from pprint import pprint
 
-        # print("Debug: select_companies results:")
-        # pprint(companies[0])
+        print("Debug: select_companies results:")
+        pprint(companies[0])
 
-
+        companies = format_data_numbers(companies)
         return render_template('companies/select_companies.html', companies=companies, group=group)
     
-    return render_template('companies/select_companies.html')
+    return render_template('companies/select_companies.html',)
 
 
 
