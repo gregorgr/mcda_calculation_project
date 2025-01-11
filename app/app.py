@@ -57,27 +57,37 @@ def topsis_main():
                  'change_in_rank']
     
     if request.method == 'POST':
-        # Preberi uteži iz POST zahtevka
+ # Read weights from the POST request
         weights = {criteria: float(request.form.get(criteria, 0)) for criteria in criterias}
-        # Normaliziraj uteži
-        normalized_weights = normalize_weights(weights)
+        total_weight = sum(weights.values())
 
-        # Shranimo v sejo
+        # Ensure at least 3 weights are non-zero
+        non_zero_weights = [w for w in weights.values() if w > 0]
+        if len(non_zero_weights) < 3:
+            return "At least 3 criteria must have weights greater than 0.", 400
+
+        # Normalize weights
+        normalized_weights = {k: v / total_weight for k, v in weights.items() if total_weight > 0}
+
+        # Store normalized weights in session
         session['topsis-weights'] = normalized_weights
 
-
+        # return redirect(url_for('topsis_main'))  # Redirect to prevent form resubmission
         #return render_template('methods/topsis.html')
         return render_template('methods/topsis-form.html')
     
-    # Preveri, če so uteži že v seji
-    normalized_weights = session.get('topsis-weights', {})
+
+     # Handle GET request: Load saved weights from session or set defaults
+    weights = session.get('topsis-weights', {criteria: 0.0 for criteria in criterias})
    
     #return render_template('methods/topsis-form.html', 
     #                       criterias=criterias, 
     #                       weights=normalized_weights)
     return render_template('methods/topsis-form-weights.html', 
                            criterias=criterias, 
-                           weights=normalized_weights)
+                           weights=weights)
+
+
 
 @app.route('/topsis/normalize', methods=['POST'])
 def topsis_normalize():
@@ -666,83 +676,108 @@ def select_companies():
 
 @app.route('/ahp', methods=['GET', 'POST'])
 def ahp():
+    # Criteria and display names
+    criteria_display = {
+        'revenue': 'Revenue',
+        'revenue_percent_change': 'Revenue Percent Change',
+        'profit': 'Profit',
+        'profits_percent_change': 'Profits Percent Change',
+        'employees': 'Employees',
+        'assets': 'Assets',
+        'change_in_rank': 'Change in Rank'
+    }
 
+        # Če je GET zahteva, pokaži obrazec
+    group = request.args.get('group', 'A')  # Privzeto skupina A
 
     
     if request.method == 'POST':
 
-        # Preberi skupino iz URL parametra (GET)
-        group = request.args.get('group', 'A')  # Privzeto "A", če ni definirano
+         # Read weights from the form
+        weights = {key: float(request.form.get(key, 0)) for key in criteria_display.keys()}
+
+        # Ensure at least 3 weights are greater than 0
+        non_zero_weights = [w for w in weights.values() if w > 0]
+        if len(non_zero_weights) < 3:
+            return "At least 3 criteria must have weights greater than 0.", 400
+
         # Preberi skupino iz obrazca
         # group = request.form.get('group', 'A')  # Privzeto skupina A, če ni definirana
-        print("Selected group:", group)  # Izpis podjetij
-        # Preberi uteži in alternative
-        weights = {
-            'revenue': float(request.form['revenue']),
-            'revenue_percent_change': float(request.form.get('revenue_percent_change', 0.0)),
-            'profit': float(request.form['profit']),
-            'profits_percent_change': float(request.form.get('profits_percent_change', 0.0)),
-            'employees': float(request.form['employees']),
-            'assets': float(request.form['assets']),
-            'change_in_rank': float(request.form.get('change_in_rank', 0.0)),
-        }
-        
-
-        # Preveri, ali so vse uteži pozitivne
-        if any(w <= 0 for w in weights.values()):
-            return "Weights must be positive numbers.", 400
-        
-        # normalisation if weights
+        # print("Selected group:", group)  # Izpis podjetij
+                # Normalize weights
         total_weight = sum(weights.values())
         if total_weight == 0:
             return "Total weight must be greater than 0.", 400
-        weights = {k: v / total_weight for k, v in weights.items()}  # normalisation
+        normalized_weights = {k: v / total_weight for k, v in weights.items()}
 
-        # Preveri normalizirane uteži
-        print("Normalized weights:", weights)
+        # Save weights to session
+        session['ahp_weights'] = weights
+
+        # Preberi uteži in alternative
+        
+        #weights = {
+        #    'revenue': float(request.form['revenue']),
+        #    'revenue_percent_change': float(request.form.get('revenue_percent_change', 0.0)),
+        #    'profit': float(request.form['profit']),
+        #    'profits_percent_change': float(request.form.get('profits_percent_change', 0.0)),
+        #    'employees': float(request.form['employees']),
+        #    'assets': float(request.form['assets']),
+        #    'change_in_rank': float(request.form.get('change_in_rank', 0.0)),
+        #}
+        
+
         # Pridobi podjetja za izbrano skupino
         companies = get_all_companies_for_group(group)
-              
+
         # Če ni podjetij, vrni sporočilo
         if not companies:
             error_text  = "No companies found for the selected group."
             return render_template('error.html', error_text=error_text)
         
+        # Perform AHP calculations
+        # calculate_ahp_with_method_id(alternatives, weights)
+        # calculate_ahp_with_method_id(companies, weights)
+        calculate_ahp_advance_with_method_id(companies, normalized_weights)
+
+
+
+              
+
+        
         # print("Selected companies:", companies)  # Izpis podjetij
-        alternatives = [
-            {
-                'id': c['id'],
-                'name': c['name'],
-                'revenue': c['revenue'],
-                'profit': c['profit'],
-                'employees': c['employees'],
-                'assets': c['assets'],
-                'revenue_percent_change': c['revenue_percent_change'],
-                'profits_percent_change': c['profits_percent_change'],
-                'change_in_rank': c['change_in_rank'],
-            }
-            for c in companies
-        ]
+        #alternatives = [
+        #    {
+        #        'id': c['id'],
+        #        'name': c['name'],
+        #        'revenue': c['revenue'],
+        #        'profit': c['profit'],
+        #        'employees': c['employees'],
+        #        'assets': c['assets'],
+        #        'revenue_percent_change': c['revenue_percent_change'],
+        #        'profits_percent_change': c['profits_percent_change'],
+        #        'change_in_rank': c['change_in_rank'],
+        #    }
+         #   for c in companies
+        #]
 
         
         # Če ni podjetij, vrni sporočilo
-        if not alternatives:
-            error_text  = "No companies found for the selected group."
-            return render_template('error.html', error_text=error_text)
-            # return "No companies found for the selected group.", 400
+        #if not alternatives:
+        #    error_text  = "No companies found for the selected group."
+        #    return render_template('error.html', error_text=error_text)
+         #   # return "No companies found for the selected group.", 400
             
 
 
-        # Izračunaj AHP in shrani rezultate
-        # calculate_ahp_with_method_id(alternatives, weights)
-        # calculate_ahp_with_method_id(companies, weights)
-        calculate_ahp_advance_with_method_id(companies, weights)
+
 
         return redirect(url_for('results', method_id=1, group=group)) # method_id='AHP'))
     
-    # Če je GET zahteva, pokaži obrazec
-    group = request.args.get('group', 'A')  # Privzeto skupina A
-    return render_template('methods/ahp.html', group=group)
+        # Handle GET request: Load saved weights from session or set defaults
+    weights = session.get('ahp_weights', {key: 0.0 for key in criteria_display.keys()})
+
+    # return render_template('methods/ahp.html', group=group)
+    return render_template('methods/ahp.html', group=group, criteria_display=criteria_display, weights=weights)
 
 
 

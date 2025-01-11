@@ -7,9 +7,99 @@ from db.database import save_results
 
 
 
-
-
 def calculate_ahp_advance_with_method_id(alternatives, weights):
+    """
+    Perform advanced AHP and save results.
+
+    Parameters:
+        alternatives (list): List of alternatives with criteria values.
+        weights (dict): Dictionary of criteria weights.
+
+    Returns:
+        list: List of results with global priorities.
+    """
+
+    # Filter out criteria with zero weights
+    weights = {k: v for k, v in weights.items() if v > 0}
+    if len(weights) < 3:
+        raise ValueError("At least 3 criteria must have weights greater than 0.")
+
+    # Number of alternatives and criteria
+    m = len(alternatives)  # Number of alternatives
+    n = len(weights)       # Number of criteria
+
+    print("DEBUG: calculate_ahp_advance_with_method_id")
+    print("Filtered weights:", weights)
+
+    # Step 1: Pairwise Comparison Matrix for criteria (PCcriteria)
+    PCcriteria = np.array([[weights[crit] / weights[crit2] for crit2 in weights.keys()] for crit in weights.keys()])
+    print("PCcriteria Matrix (after validation):", PCcriteria)  # Debug
+
+    # Consistency check for criteria
+    lambdamax = np.amax(np.linalg.eigvals(PCcriteria).real)
+    CI = (lambdamax - n) / (n - 1) if n > 1 else 0
+    RI = [0, 0, 0.58, 0.90, 1.12, 1.24, 1.32, 1.41]  # Random Consistency Index
+    CR = CI / RI[n - 1] if n - 1 < len(RI) else 0
+    print("Consistency Ratio (CR) for criteria:", CR)  # Debug
+    if CR > 0.1:
+        print("Pairwise Comparison Matrix for criteria is inconsistent (CR =", CR, ")")
+
+    # Step 2: Pairwise Comparison Matrices for alternatives (PCM)
+    PCM = []
+    for crit in weights.keys():
+        crit_values = [alt[crit] for alt in alternatives]
+        crit_values = [val if val != 0 else 1e-10 for val in crit_values]  # Replace 0 with a small positive value
+        PCM.append(np.array([[v1 / v2 for v2 in crit_values] for v1 in crit_values]))
+        print(f"Pairwise Comparison Matrix for criterion '{crit}':", PCM[-1])  # Debug
+
+    PCM = np.vstack(PCM)  # Combine matrices along criteria
+    print("PCM (all criteria combined):", PCM)
+
+    # Step 3: Compute local priorities for alternatives
+    def geomean(x):
+        """
+        Compute geometric mean for each row in a matrix.
+
+        Parameters:
+            x (numpy.ndarray): Input matrix.
+
+        Returns:
+            numpy.ndarray: Geometric mean for each row.
+        """
+        z = [1] * x.shape[0]
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                if x[i][j] <= 0:  # Ensure no invalid values
+                    x[i][j] = 1e-10  # Replace with a small positive value
+                z[i] *= x[i][j]
+            z[i] = pow(z[i], (1 / x.shape[0]))
+        return np.array(z)
+
+    S = []
+    for i in range(n):
+        submatrix = PCM[i * m:i * m + m, 0:m]
+        GMalternatives = geomean(submatrix)
+        s = GMalternatives / sum(GMalternatives)
+        S.append(s)
+
+    S = np.transpose(S)
+
+    # Step 4: Compute global priorities
+    GMcriteria = geomean(PCcriteria)
+    w = GMcriteria / sum(GMcriteria)
+
+    global_priorities = S.dot(w.T)
+    global_priorities = [round(priority, 3) for priority in global_priorities]
+
+    # Save results to database
+    results = [{'company_id': alt['id'], 'name': alt['name'], 'score': global_priorities[i]} for i, alt in enumerate(alternatives)]
+    print("Final AHP results:", results)  # Debug
+    save_results(1, results)  # Save results with method_id = 1
+
+    return results
+
+
+def calculate_ahp_advance_with_method_id1(alternatives, weights):
     """
     Perform advanced AHP and save results.
 
