@@ -6,8 +6,13 @@
 </script>
 <div class="container">
     <h1 class="mt-4">Comparison of Results (Group {{ group }})</h1>
+    
+    <!-- Chart Section -->
+    <div class="mt-4">
+        <h3>Comparison Chart</h3>
+        <canvas id="comparisonChart" width="800" height="400"></canvas>
+    </div>
     <p>This table compares the scores of companies across all methods.</p>
-
 
     <div class="table-header d-flex border">
         <!-- Sortable column for company names -->
@@ -33,11 +38,65 @@
         </div>
         {% for method in methods %}
             <div class="col-md-2 p-2 text-center">
-                {{ company.scores.get(method, '') }}
+                <div>{{ company.scores_rank.get(method, '') }}</div>
+                <div> {{ company.scores.get(method, '') }}</div>
+                
             </div>
+    
         {% endfor %}
     </div>
     {% endfor %}
 </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        const chartData = {{ chart_data|tojson }};
+        const tooltipData = {{ tooltip_data|tojson }};
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: chartData.datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                const method = tooltipItem.dataset.label;
+                                const index = tooltipItem.dataIndex;
+                                const originalScore = tooltipData[method][index];
+                                return `${method}: ${tooltipItem.raw.toFixed(2)} (Original: ${originalScore.toFixed(3)})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Companies'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Normalized Score'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

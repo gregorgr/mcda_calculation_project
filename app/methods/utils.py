@@ -112,3 +112,70 @@ def round_mcda_scores(companies, methods, rounding_array):
                 company['scores'][method] = formatted_score
 
     return companies
+
+
+def calculate_all_ranks(companies, methods):
+    """
+    Calculate ranks for each method and update the companies data.
+
+    Parameters:
+        companies (list): List of companies with their scores.
+        methods (list): List of method names.
+
+    Returns:
+        list: Updated companies with rank data.
+    """
+    # Prepare a structure to hold scores per method
+    method_scores = {method: [] for method in methods}
+
+    # Collect scores for each method
+    for company in companies:
+        for method in methods:
+            score = company['scores_original'].get(method, 0)
+            method_scores[method].append((score, company))
+
+    # Calculate ranks for each method
+    for method, scores in method_scores.items():
+        # Sort scores in descending order for ranking
+        sorted_scores = sorted(scores, key=lambda x: x[0], reverse=True)
+
+        # Assign ranks
+        rank = 1
+        for _, company in sorted_scores:
+            if 'scores_rank' not in company:
+                company['scores_rank'] = {}
+            company['scores_rank'][method] = rank
+            rank += 1
+
+    return companies
+
+
+def normalize_scores(companies, methods):
+    """
+    Normalize scores for each method across all companies.
+
+    Parameters:
+        companies (list): List of companies with their scores.
+        methods (list): List of method names.
+
+    Returns:
+        list: Updated companies with normalized scores.
+    """
+    for method in methods:
+        # Extract all original scores for this method
+        scores = [company['scores_original'].get(method, 0) for company in companies]
+
+        # Calculate min and max for normalization
+        min_score = min(scores)
+        max_score = max(scores)
+        range_score = max_score - min_score if max_score != min_score else 1  # Avoid division by zero
+
+        # Normalize scores
+        for company in companies:
+            original = company['scores_original'].get(method, 0)
+            normalized = (original - min_score) / range_score  # Normalize to 0-1
+            if 'scores_normalized' not in company:
+                company['scores_normalized'] = {}
+            company['scores_normalized'][method] = normalized
+
+    return companies

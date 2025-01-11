@@ -11,7 +11,7 @@ from methods.promethee.promethee import  build_decision_matrix,  normalize_decis
 # calculate_difference_matrixB
 
 from methods.topsis.topsis import topsis_normalize_decision_matrix
-from methods.utils import normalize_weights, format_data_numbers, round_mcda_method_scores, round_mcda_scores
+from methods.utils import normalize_scores, calculate_all_ranks, normalize_weights, format_data_numbers, round_mcda_method_scores, round_mcda_scores
  #,  # Posodobljen uvoz
 import locale
 
@@ -737,7 +737,7 @@ def results(method_id):
 
 
 @app.route('/compare')
-def compare():
+def compare_results():
     """
     Compare results from all methods (AHP, WSM, etc.)
     """
@@ -765,7 +765,39 @@ def compare():
     rounding_array = [3,  4, 1] 
     methods = ["AHP", "PROMETHEE", "WSM"]
     companies = round_mcda_scores(companies, methods, rounding_array)
-    return render_template('compare.html', methods=METHODS.values(), companies=companies, group=group)
+    
+    # Calculate ranks
+    companies = calculate_all_ranks(companies, methods)
+
+    # Normalize scores
+    companies = normalize_scores(companies, methods)
+
+    from pprint import pprint
+
+    print("Debug: compare results:")
+    pprint(companies[0])
+     # Prepare data for Chart.js
+    chart_data = {
+        'labels': [company['name'] for company in companies],
+        'datasets': [
+            {
+                'label': method,
+                'data': [company['scores_normalized'].get(method, 0) for company in companies],
+                'backgroundColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 0.6)',
+                'borderColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 1)',
+                'borderWidth': 1
+            }
+            for i, method in enumerate(methods)
+        ]
+    }
+
+    # Include original scores for tooltips
+    tooltip_data = {
+        method: [company['scores_original'].get(method, 0) for company in companies]
+        for method in methods
+    }
+
+    return render_template('compare.html', methods=METHODS.values(), companies=companies, group=group, chart_data=chart_data, tooltip_data=tooltip_data)
 
     # return render_template('compare.html', group=group, ahp=ahp_results, promethee=promethee_results, wsm=wsm_results)
 
