@@ -19,7 +19,7 @@ sidebar_links = [
                 "name": "Scrape Fortune 500",
                 "url": "/api/scrape-fortune-500",
                 "sub_links": [
-                    {"name": "Scrape and Save", "url": "/"}
+                    {"name": "Scrape and Save", "url": "/scrape-and-save"}
                 ]
             },
             {"name": "Fortune 500", "url": "/companies"},

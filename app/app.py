@@ -612,9 +612,17 @@ def companies_table():
 
 @app.route('/scrape-and-save')
 def scrape_and_save():
-    companies = scrape_fortune500(FORTUNE_URL)  # Pridobi najnovejše podatke
-    save_companies_to_db(companies)  # Posodobi bazo
-    # return jsonify({'message': 'Data scraped and saved successfully!'})
+    companies= []
+    try:
+        companies = scrape_fortune500(FORTUNE_URL)  # Pridobi najnovejše podatke
+        save_companies_to_db(companies)  # Posodobi bazo
+        # return jsonify({'message': 'Data scraped and saved successfully!'})
+    except:
+        return render_template('error.html', error_text="An exception occurred. Possible exceed of scrape limit.")
+    
+    if companies.empty:
+         return render_template('error.html', error_text="No data was scraped. ")
+
     return render_template('scrape.html')
 
 
@@ -623,7 +631,17 @@ def scrape_and_save():
 # Endpoint za scraping Fortune 500
 @app.route('/api/scrape-fortune-500')
 def scrape_fortune_500_route():
-    companies = scrape_fortune500(FORTUNE_URL)
+    companies=[]
+    try:
+        companies = scrape_fortune500(FORTUNE_URL) # Pridobi najnovejše podatke
+        #save_companies_to_db(companies)  # Posodobi bazo
+        # return jsonify({'message': 'Data scraped and saved successfully!'})
+    except:
+        return render_template('error.html', error_text="An exception occurred. Possible exceed of scrape limit.")
+    
+    if companies.empty:
+        return render_template('error.html', error_text="No data was scraped. ")
+    
     return companies.to_json(orient='records'), 200, {'Content-Type': 'application/json'}
 
 
