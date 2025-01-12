@@ -92,9 +92,9 @@ def topsis_main():
         
         # Pretvori podatke v seznam slovarjev
         companies = [dict(row) for row in companies]
-        print("DEBUG: Converted Companies data:", companies)  # Debugging output
+        #print("DEBUG: Converted Companies data:", companies)  # Debugging output
         decision_matrix = pd.DataFrame(companies)
-        print("DEBUG: Decision matrix columns:", decision_matrix.columns)
+        #print("DEBUG: Decision matrix columns:", decision_matrix.columns)
         # print("DEBUG: Companies data:", companies)
 
         
@@ -397,73 +397,57 @@ def promethee_parameters():
 
 
 
-#step 3 (optional)
+# Step 3 (optional): PROMETHEE Decision Matrix
 @app.route('/promethee/decision-matrix', methods=['GET', 'POST'])
 def promethee_decision_matrix():
-
     group = request.args.get('group', 'A')  # Default group "A"
 
-    # Example decision matrix
-    decision_matrix = np.array([
-            [500, 5, 50, 3, 1000, 2000, -2],
-            [700, 6, 80, 4.5, 1500, 3000, 1],
-            [600, 4, 60, 2, 1200, 2500, 0]
-        ])
-    print("DEBUG [promethee_decision_matrix]0: decision_matrix:\n",decision_matrix)
-    # decision_matrix = session.get('decision_matrix', decision_matrix)
-    # parameter_attributes = session.get('parameter_attributes', parameter_attributes)
-    attributes = ['revenue', 
-                'revenue_percent_change', 
-                'profit', 
-                'profits_percent_change', 
-                'employees', 
-                'assets',
-                'change_in_rank']  # Example attributes
-    
-    #print("DEBUG [promethee_decision_matrix]1: decision_matrix:\n",decision_matrix)
+    # Retrieve companies for the selected group
+    companies = get_all_companies_for_group(group)  # This function should fetch companies from the database
 
+    # Define attributes for the decision matrix
+    attributes = [
+        'revenue', 'revenue_percent_change', 'profit',
+        'profits_percent_change', 'employees', 'assets', 'change_in_rank'
+    ]
+
+    # Initialize decision matrix based on company data
     if request.method == 'POST':
+        num_alternatives = len(companies)
+        decision_matrix = []
 
-        # Retrieve decision matrix from user input
-        # num_alternatives = int(request.form.get('num_alternatives', 3))
-        num_alternatives = int(request.form.get('num_alternatives', 20))
-        decision_matrix = []
-        # decision_matrix = []
-        #print("DEBUG [promethee_decision_matrix]2: decision_matrix\n")
-        decision_matrix = []
         for i in range(1, num_alternatives + 1):
             row = []
-
             for attribute in attributes:
-            
                 value = request.form.get(f'alt_{i}_{attribute}', '')
-                #print(f"DEBUG [promethee_decision_matrix]3: Alt {i}, Attr {attribute}, Value: {value}")  # Debug
-
                 try:
                     value = float(value) if value else 0.0
                 except ValueError:
-                    #print(f"DEBUG [promethee_decision_matrix]4: ValueError")  # Debug    
                     value = 0.0  # Default to 0 if conversion fails
                 row.append(value)
             decision_matrix.append(row)
 
-        # Save decision matrix in session or database
+        # Save decision matrix in the session
         session['promethee_decision_matrix'] = decision_matrix
-        #print("DEBUG [promethee_decision_matrix]5: Constructed decision_matrix:\n",decision_matrix)
-        # Redirect to processing step (e.g., normalization)
         return redirect('/promethee/normalize?group=' + group)
 
-    # Render form to input decision matrix
-    #return render_template('methods/promethee-decision-matrix.html', num_alternatives=3, attributes=attributes, group=group)
-    # Render the form with pre-filled values
-    return render_template('methods/promethee-decision-matrix.html', 
-                           decision_matrix=decision_matrix, 
-                           attributes=attributes, 
-                           num_alternatives=len(decision_matrix), 
-                           group=group,
-                           enumerate=enumerate)  # Dodamo enumerate v kontekst)
+    # Pre-fill decision matrix from session or initialize it
+    decision_matrix = session.get('promethee_decision_matrix', [
+        [company[attr] for attr in attributes] for company in companies
+    ])
+  
+    # Določanje alternativ (poimenovanje z imeni podjetij)
+    alternatives = [company['name'] for company in companies]
 
-
+    return render_template(
+        'methods/promethee-decision-matrix.html',
+        decision_matrix=decision_matrix,
+        attributes=attributes,
+        num_alternatives=len(companies),
+        group=group,
+        alternatives=alternatives,
+        enumerate=enumerate
+    )
 
 # step 4
 @app.route('/promethee/normalize', methods=['GET'])
@@ -854,24 +838,25 @@ def compare_results():
     # Normalize scores
     companies = normalize_scores(companies, methods)
 
-    from pprint import pprint
+    #from pprint import pprint
 
-    print("Debug: compare results:")
-    pprint(companies[0])
-     # Prepare data for Chart.js
+    #print("Debug: compare results:")
+    #pprint(companies[0])
+    # Prepare data for Chart.js
     chart_data = {
-        'labels': [company['name'] for company in companies],
-        'datasets': [
-            {
-                'label': method,
-                'data': [company['scores_normalized'].get(method, 0) for company in companies],
-                'backgroundColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 0.6)',
-                'borderColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 1)',
-                'borderWidth': 1
-            }
-            for i, method in enumerate(methods)
-        ]
-    }
+    'labels': [company['name'] for company in companies],
+    'datasets': [
+        {
+            'label': method,
+            'data': [company['scores_normalized'].get(method, 0) for company in companies],
+            'backgroundColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 0.6)',
+            'borderColor': f'rgba({50 + i * 50}, {100 + i * 50}, {200 - i * 50}, 1)',
+            'borderWidth': 1,
+            'tooltip': [company['scores_tooltip'].get(method, 0) for company in companies]
+        }
+        for i, method in enumerate(methods)
+    ]
+}
 
     # Include original scores for tooltips
     tooltip_data = {
