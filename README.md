@@ -35,7 +35,7 @@ A Flask-based web application for Multi-Criteria Decision Analysis (MCDA). This 
 ## **Project Structure**
 
 ```plaintext
-mcda_calculation_project/
+mcda_calculation_project
 ├── app
 │   ├── app.py
 │   ├── constants.py
@@ -54,14 +54,17 @@ mcda_calculation_project/
 │   │   └── wsm
 │   ├── __pycache__
 │   │   ├── app.cpython-313.pyc
-│   │   └── constants.cpython-313.pyc
+│   │   ├── constants.cpython-313.pyc
+│   │   ├── __init__.cpython-313.pyc
+│   │   └── routes.cpython-313.pyc
 │   ├── routes.py
 │   ├── scrape500
 │   │   ├── __init__.py
 │   │   ├── __pycache__
 │   │   └── scrape500.py
 │   ├── static
-│   │   └── css
+│   │   ├── css
+│   │   └── js
 │   ├── templates
 │   │   ├── base.html
 │   │   ├── companies
@@ -75,7 +78,6 @@ mcda_calculation_project/
 │   │   ├── plot.html
 │   │   ├── results.html
 │   │   ├── scrape.html
-│   │   ├── select_companies.html
 │   │   └── sidebar.html
 │   └── venv
 │       ├── bin
@@ -85,14 +87,17 @@ mcda_calculation_project/
 │       └── pyvenv.cfg
 ├── config.py
 ├── fortune500.db
+├── package.json
+├── package-lock.json
+├── __pycache__
+│   └── config.cpython-313.pyc
 ├── README.md
 ├── requirements.txt
+├── tailwind.config.js
 └── tests
     ├── database.py
     ├── models.py
     └── test_app.py
-
-24 directories, 32 files
 
 ```
 
@@ -121,7 +126,8 @@ python app/db/database.py
 1. **Run the Flask server**
 
 	```bash
-	python app/app.py
+	cd app
+	python app.py
 	```
 
 2. **Access the web interface**
