@@ -844,7 +844,7 @@ def compare_results():
  
     # Prepare companies for rendering
     companies = list(comparison_data.values())
-    rounding_array = [3,  4, 1] 
+    rounding_array = [1, 2, 3,  4] 
     methods = ["AHP", "Topsis", "PROMETHEE", "WSM"]
     companies = round_mcda_scores(companies, methods, rounding_array)
     

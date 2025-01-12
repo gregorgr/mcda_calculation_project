@@ -91,25 +91,39 @@ def round_mcda_scores(companies, methods, rounding_array):
     :param rounding_array: List of decimal places for rounding each method.
     :return: Updated list of companies with both original and formatted values.
     """
+    #print(f"Error Debug [utils:round_mcda_scores] methods:", methods)
     for company in companies:
         company['scores_original'] = {}  # Store original scores for sorting
         for method_index, method in enumerate(methods):
             if method in company['scores']:
                 # Get the original score
-                original_score = company['scores'][method]
+                try:
+                    original_score = company['scores'][method]
 
-                # Round the score
-                rounded_score = round(original_score, rounding_array[method_index])
+                    # Round the score
+                    rounded_score = round(original_score, rounding_array[method_index])
 
-                # Store the original score for sorting
-                company['scores_original'][method] = rounded_score
+                    # Store the original score for sorting
+                    company['scores_original'][method] = rounded_score
 
-                # Format the score for display
-                formatted_score = "{:,.{precision}f}".format(rounded_score, precision=rounding_array[method_index])
-                formatted_score = formatted_score.replace(",", "X").replace(".", ",").replace("X", ".")  # Slovene format
+                    # Format the score for display
+                    formatted_score = "{:,.{precision}f}".format(rounded_score, precision=rounding_array[method_index])
+                    formatted_score = formatted_score.replace(",", "X").replace(".", ",").replace("X", ".")  # Slovene format
 
-                # Update the displayed score
-                company['scores'][method] = formatted_score
+                    # Update the displayed score
+                    company['scores'][method] = formatted_score
+                except Exception as error:
+                    #from pprint import pprint
+                    print(f"Error Debug [utils:round_mcda_scores]: {error}")
+                    print(f"method_index: {method_index}")
+                    print(f"rounding_array[method_index] ", rounding_array)
+                        #pprint(results.head())  # Če je DataFrame, prikaže prvih nekaj vrstic
+                        #print("Topsis Debug: results (dtypes):")
+                        #pprint(results.dtypes)  # Če je DataFrame, prikaže tipe podatko
+                        #print("Topsis Debug: First row:")
+                        #pprint(results.iloc[0].to_dict()) 
+
+    
 
     return companies
 
@@ -152,7 +166,7 @@ def calculate_all_ranks(companies, methods):
 
 def normalize_scores(companies, methods):
     """
-    Normalize scores for each method across all companies.
+    Normalize scores for each method across all companies with handling for negative values.
 
     Parameters:
         companies (list): List of companies with their scores.
@@ -178,7 +192,13 @@ def normalize_scores(companies, methods):
                 company['scores_normalized'] = {}
             company['scores_normalized'][method] = normalized
 
+            # Include the original score for tooltips or debugging
+            if 'scores_tooltip' not in company:
+                company['scores_tooltip'] = {}
+            company['scores_tooltip'][method] = original
+
     return companies
+
 
 
 def normalize_results_scores(results):
